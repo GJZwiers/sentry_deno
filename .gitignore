@@ -4,3 +4,4 @@ cov/
 coverage/
 lcov/
 target/
+bar.ts
