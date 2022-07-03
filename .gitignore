@@ -1,0 +1,6 @@
+.env
+.vscode/
+cov/
+coverage/
+lcov/
+target/
