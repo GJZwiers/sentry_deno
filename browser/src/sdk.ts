@@ -127,7 +127,7 @@ export function init(options: BrowserOptions = {}): void {
  * @param options Everything is optional, we try to fetch all info need from the global scope.
  */
 export function showReportDialog(options: ReportDialogOptions = {}, hub: Hub = getCurrentHub()): void {
-  throw new Error("not implemented due to 'document'");
+  
   // doesn't work without a document (React Native)
   // const global = getGlobalObject<Window>();
   // if (!global.document) {
@@ -251,7 +251,7 @@ function startSessionOnHub(hub: Hub): void {
  */
 function startSessionTracking(): void {
   const window = getGlobalObject<Window>();
-  throw new Error("Not implemented.")
+
   // const document = window.document;
 
   // if (typeof document === 'undefined') {
