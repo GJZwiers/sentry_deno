@@ -1,7 +1,17 @@
 /* eslint-disable max-lines */
-import { getCurrentHub, getIntegrationsToSetup, initAndBind, Integrations as CoreIntegrations } from '@sentry/core';
-import { getMainCarrier, setHubOnCarrier } from '@sentry/hub';
-import { Event, ExtractedNodeRequestData, SessionStatus, StackParser } from '@sentry/types';
+import {
+  getCurrentHub,
+  getIntegrationsToSetup,
+  initAndBind,
+  Integrations as CoreIntegrations,
+} from "@sentry/core";
+import { getMainCarrier, setHubOnCarrier } from "@sentry/hub";
+import {
+  Event,
+  ExtractedNodeRequestData,
+  SessionStatus,
+  StackParser,
+} from "@sentry/types";
 import {
   addRequestDataToEvent as _addRequestDataToEvent,
   AddRequestDataToEventOptions,
@@ -12,16 +22,24 @@ import {
   logger,
   nodeStackLineParser,
   stackParserFromStackParserOptions,
-} from '@sentry/utils';
-import * as cookie from 'cookie';
-import * as domain from 'domain';
-import * as url from 'url';
+} from "@sentry/utils";
+import * as cookie from "cookie";
+import * as domain from "domain";
+import * as url from "url";
+import { __DEBUG_BUILD__ } from "../../types/src/globals.ts";
 
-import { NodeClient } from './client';
-import { Console, ContextLines, Http, LinkedErrors, OnUncaughtException, OnUnhandledRejection } from './integrations';
-import { getModule } from './module';
-import { makeNodeTransport } from './transports';
-import { NodeClientOptions, NodeOptions } from './types';
+import { NodeClient } from "./client";
+import {
+  Console,
+  ContextLines,
+  Http,
+  LinkedErrors,
+  OnUncaughtException,
+  OnUnhandledRejection,
+} from "./integrations";
+import { getModule } from "./module";
+import { makeNodeTransport } from "./transports";
+import { NodeClientOptions, NodeOptions } from "./types";
 
 export const defaultIntegrations = [
   // Common
@@ -97,19 +115,21 @@ export function init(options: NodeOptions = {}): void {
   const carrier = getMainCarrier();
   const autoloadedIntegrations = carrier.__SENTRY__?.integrations || [];
 
-  options.defaultIntegrations =
-    options.defaultIntegrations === false
-      ? []
-      : [
-          ...(Array.isArray(options.defaultIntegrations) ? options.defaultIntegrations : defaultIntegrations),
-          ...autoloadedIntegrations,
-        ];
+  options.defaultIntegrations = options.defaultIntegrations === false ? [] : [
+    ...(Array.isArray(options.defaultIntegrations)
+      ? options.defaultIntegrations
+      : defaultIntegrations),
+    ...autoloadedIntegrations,
+  ];
 
   if (options.dsn === undefined && process.env.SENTRY_DSN) {
     options.dsn = process.env.SENTRY_DSN;
   }
 
-  if (options.tracesSampleRate === undefined && process.env.SENTRY_TRACES_SAMPLE_RATE) {
+  if (
+    options.tracesSampleRate === undefined &&
+    process.env.SENTRY_TRACES_SAMPLE_RATE
+  ) {
     const tracesSampleRate = parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE);
     if (isFinite(tracesSampleRate)) {
       options.tracesSampleRate = tracesSampleRate;
@@ -142,7 +162,9 @@ export function init(options: NodeOptions = {}): void {
   // TODO(v7): Refactor this to reduce the logic above
   const clientOptions: NodeClientOptions = {
     ...options,
-    stackParser: stackParserFromStackParserOptions(options.stackParser || defaultStackParser),
+    stackParser: stackParserFromStackParserOptions(
+      options.stackParser || defaultStackParser,
+    ),
     integrations: getIntegrationsToSetup(options),
     transport: options.transport || makeNodeTransport,
   };
@@ -176,7 +198,7 @@ export async function flush(timeout?: number): Promise<boolean> {
   if (client) {
     return client.flush(timeout);
   }
-  __DEBUG_BUILD__ && logger.warn('Cannot flush events. No client defined.');
+  __DEBUG_BUILD__ && logger.warn("Cannot flush events. No client defined.");
   return Promise.resolve(false);
 }
 
@@ -193,7 +215,8 @@ export async function close(timeout?: number): Promise<boolean> {
   if (client) {
     return client.close(timeout);
   }
-  __DEBUG_BUILD__ && logger.warn('Cannot flush events and disable SDK. No client defined.');
+  __DEBUG_BUILD__ &&
+    logger.warn("Cannot flush events and disable SDK. No client defined.");
   return Promise.resolve(false);
 }
 
@@ -245,7 +268,9 @@ export function getSentryRelease(fallback?: string): string | undefined {
 }
 
 /** Node.js stack parser */
-export const defaultStackParser: StackParser = createStackParser(nodeStackLineParser(getModule));
+export const defaultStackParser: StackParser = createStackParser(
+  nodeStackLineParser(getModule),
+);
 
 /**
  * Enable automatic Session Tracking for the node process.
@@ -257,9 +282,9 @@ function startSessionTracking(): void {
   // The 'beforeExit' event is not emitted for conditions causing explicit termination,
   // such as calling process.exit() or uncaught exceptions.
   // Ref: https://nodejs.org/api/process.html#process_event_beforeexit
-  process.on('beforeExit', () => {
+  process.on("beforeExit", () => {
     const session = hub.getScope()?.getSession();
-    const terminalStates: SessionStatus[] = ['exited', 'crashed'];
+    const terminalStates: SessionStatus[] = ["exited", "crashed"];
     // Only call endSession, if the Session exists on Scope and SessionStatus is not a
     // Terminal Status i.e. Exited or Crashed because
     // "When a session is moved away from ok it must not be updated anymore."
@@ -283,7 +308,7 @@ function startSessionTracking(): void {
 export function addRequestDataToEvent(
   event: Event,
   req: CrossPlatformRequest,
-  options?: Omit<AddRequestDataToEventOptions, 'deps'>,
+  options?: Omit<AddRequestDataToEventOptions, "deps">,
 ): Event {
   return _addRequestDataToEvent(event, req, {
     ...options,

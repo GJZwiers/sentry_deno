@@ -1,25 +1,37 @@
-import { Carrier, getHubFromCarrier, getMainCarrier } from '@sentry/hub';
-import { RewriteFrames } from '@sentry/integrations';
-import { configureScope, getCurrentHub, init as nodeInit, Integrations } from '@sentry/node';
-import { hasTracingEnabled } from '@sentry/tracing';
-import { EventProcessor } from '@sentry/types';
-import { escapeStringForRegex, logger } from '@sentry/utils';
-import * as domainModule from 'domain';
-import * as path from 'path';
+import { Carrier, getHubFromCarrier, getMainCarrier } from "@sentry/hub";
+import { RewriteFrames } from "@sentry/integrations";
+import {
+  configureScope,
+  getCurrentHub,
+  init as nodeInit,
+  Integrations,
+} from "@sentry/node";
+import { hasTracingEnabled } from "@sentry/tracing";
+import { EventProcessor } from "@sentry/types";
+import { escapeStringForRegex, logger } from "@sentry/utils";
+import * as domainModule from "domain";
+import * as path from "path";
+import { __DEBUG_BUILD__ } from "../../types/src/globals.ts";
 
-import { buildMetadata } from './utils/metadata';
-import { NextjsOptions } from './utils/nextjsOptions';
-import { addIntegration } from './utils/userIntegrations';
+import { buildMetadata } from "./utils/metadata";
+import { NextjsOptions } from "./utils/nextjsOptions";
+import { addIntegration } from "./utils/userIntegrations";
 
-export * from '@sentry/node';
-export { captureUnderscoreErrorException } from './utils/_error';
+export * from "@sentry/node";
+export { captureUnderscoreErrorException } from "./utils/_error";
 
 // Here we want to make sure to only include what doesn't have browser specifics
 // because or SSR of next.js we can only use this.
-export { ErrorBoundary, showReportDialog, withErrorBoundary } from '@sentry/react';
+export {
+  ErrorBoundary,
+  showReportDialog,
+  withErrorBoundary,
+} from "@sentry/react";
 
 type GlobalWithDistDir = typeof global & { __rewriteFramesDistDir__: string };
-const domain = domainModule as typeof domainModule & { active: (domainModule.Domain & Carrier) | null };
+const domain = domainModule as typeof domainModule & {
+  active: (domainModule.Domain & Carrier) | null;
+};
 
 // During build, the main process is invoked by
 //   `node next build`
@@ -33,8 +45,8 @@ const domain = domainModule as typeof domainModule & { active: (domainModule.Dom
 //   `node /var/runtime/index.js`,
 // so we never drop into the `if` in the first place.
 let isBuild = false;
-if (process.argv.includes('build') || process.env.SENTRY_BUILD_PHASE) {
-  process.env.SENTRY_BUILD_PHASE = 'true';
+if (process.argv.includes("build") || process.env.SENTRY_BUILD_PHASE) {
+  process.env.SENTRY_BUILD_PHASE = "true";
   isBuild = true;
 }
 
@@ -46,14 +58,14 @@ export function init(options: NextjsOptions): void {
     logger.enable();
   }
 
-  __DEBUG_BUILD__ && logger.log('Initializing SDK...');
+  __DEBUG_BUILD__ && logger.log("Initializing SDK...");
 
   if (sdkAlreadyInitialized()) {
-    __DEBUG_BUILD__ && logger.log('SDK already initialized');
+    __DEBUG_BUILD__ && logger.log("SDK already initialized");
     return;
   }
 
-  buildMetadata(options, ['nextjs', 'node']);
+  buildMetadata(options, ["nextjs", "node"]);
   options.environment = options.environment || process.env.NODE_ENV;
   addServerIntegrations(options);
   // Right now we only capture frontend sessions for Next.js
@@ -71,16 +83,18 @@ export function init(options: NextjsOptions): void {
 
   nodeInit(options);
 
-  const filterTransactions: EventProcessor = event => {
-    return event.type === 'transaction' && event.transaction === '/404' ? null : event;
+  const filterTransactions: EventProcessor = (event) => {
+    return event.type === "transaction" && event.transaction === "/404"
+      ? null
+      : event;
   };
 
-  filterTransactions.id = 'NextServer404TransactionFilter';
+  filterTransactions.id = "NextServer404TransactionFilter";
 
-  configureScope(scope => {
-    scope.setTag('runtime', 'node');
+  configureScope((scope) => {
+    scope.setTag("runtime", "node");
     if (isVercel) {
-      scope.setTag('vercel', true);
+      scope.setTag("vercel", true);
     }
 
     scope.addEventProcessor(filterTransactions);
@@ -100,7 +114,7 @@ export function init(options: NextjsOptions): void {
     domain.active = activeDomain;
   }
 
-  __DEBUG_BUILD__ && logger.log('SDK successfully initialized');
+  __DEBUG_BUILD__ && logger.log("SDK successfully initialized");
 }
 
 function sdkAlreadyInitialized(): boolean {
@@ -110,36 +124,51 @@ function sdkAlreadyInitialized(): boolean {
 
 function addServerIntegrations(options: NextjsOptions): void {
   // This value is injected at build time, based on the output directory specified in the build config
-  const distDirName = (global as GlobalWithDistDir).__rewriteFramesDistDir__ || '.next';
+  const distDirName = (global as GlobalWithDistDir).__rewriteFramesDistDir__ ||
+    ".next";
   // nextjs always puts the build directory at the project root level, which is also where you run `next start` from, so
   // we can read in the project directory from the currently running process
   const distDirAbsPath = path.resolve(process.cwd(), distDirName);
-  const SOURCEMAP_FILENAME_REGEX = new RegExp(escapeStringForRegex(distDirAbsPath));
+  const SOURCEMAP_FILENAME_REGEX = new RegExp(
+    escapeStringForRegex(distDirAbsPath),
+  );
 
   const defaultRewriteFramesIntegration = new RewriteFrames({
-    iteratee: frame => {
-      frame.filename = frame.filename?.replace(SOURCEMAP_FILENAME_REGEX, 'app:///_next');
+    iteratee: (frame) => {
+      frame.filename = frame.filename?.replace(
+        SOURCEMAP_FILENAME_REGEX,
+        "app:///_next",
+      );
       return frame;
     },
   });
 
   if (options.integrations) {
-    options.integrations = addIntegration(defaultRewriteFramesIntegration, options.integrations);
+    options.integrations = addIntegration(
+      defaultRewriteFramesIntegration,
+      options.integrations,
+    );
   } else {
     options.integrations = [defaultRewriteFramesIntegration];
   }
 
   if (hasTracingEnabled(options)) {
-    const defaultHttpTracingIntegration = new Integrations.Http({ tracing: true });
-    options.integrations = addIntegration(defaultHttpTracingIntegration, options.integrations, {
-      Http: { keyPath: '_tracing', value: true },
+    const defaultHttpTracingIntegration = new Integrations.Http({
+      tracing: true,
     });
+    options.integrations = addIntegration(
+      defaultHttpTracingIntegration,
+      options.integrations,
+      {
+        Http: { keyPath: "_tracing", value: true },
+      },
+    );
   }
 }
 
-export type { SentryWebpackPluginOptions } from './config/types';
-export { withSentryConfig } from './config';
-export { withSentry } from './utils/withSentry';
+export type { SentryWebpackPluginOptions } from "./config/types";
+export { withSentryConfig } from "./config";
+export { withSentry } from "./utils/withSentry";
 
 // Wrap various server methods to enable error monitoring and tracing. (Note: This only happens for non-Vercel
 // deployments, because the current method of doing the wrapping a) crashes Next 12 apps deployed to Vercel and
@@ -150,9 +179,12 @@ if (!isVercel && !isBuild) {
   // In environments where the JS file doesn't exist, such as testing, import the TS file.
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { instrumentServer } = require('./utils/instrumentServer.js');
+    const { instrumentServer } = require("./utils/instrumentServer.js");
     instrumentServer();
   } catch (err) {
-    __DEBUG_BUILD__ && logger.warn(`Error: Unable to instrument server for tracing. Got ${err}.`);
+    __DEBUG_BUILD__ &&
+      logger.warn(
+        `Error: Unable to instrument server for tracing. Got ${err}.`,
+      );
   }
 }

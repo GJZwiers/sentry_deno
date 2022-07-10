@@ -1,4 +1,5 @@
 import { getCurrentHub } from "../../hub/src/index.ts";
+import { __DEBUG_BUILD__ } from "../../types/src/globals.ts";
 import { Client, ClientOptions } from "../../types/src/index.ts";
 import { logger } from "../../utils/src/index.ts";
 

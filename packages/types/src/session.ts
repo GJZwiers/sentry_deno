@@ -1,4 +1,4 @@
-import { User } from './user';
+import { User } from "./user.ts";
 
 export interface RequestSession {
   status?: RequestSessionStatus;
@@ -34,8 +34,8 @@ export interface Session {
 
 export type SessionContext = Partial<Session>;
 
-export type SessionStatus = 'ok' | 'exited' | 'crashed' | 'abnormal';
-export type RequestSessionStatus = 'ok' | 'errored' | 'crashed';
+export type SessionStatus = "ok" | "exited" | "crashed" | "abnormal";
+export type RequestSessionStatus = "ok" | "errored" | "crashed";
 
 /** JSDoc */
 export interface SessionAggregates {

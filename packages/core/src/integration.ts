@@ -1,4 +1,5 @@
 import { addGlobalEventProcessor, getCurrentHub } from "../../hub/src/index.ts";
+import { __DEBUG_BUILD__ } from "../../types/src/globals.ts";
 import { Integration, Options } from "../../types/src/index.ts";
 import { logger } from "../../utils/src/index.ts";
 
@@ -15,7 +16,9 @@ export type IntegrationIndex = {
 function filterDuplicates(integrations: Integration[]): Integration[] {
   return integrations.reduce((acc, integrations) => {
     if (
-      acc.every((accIntegration) => integrations.name !== accIntegration.name)
+      acc.every((accIntegration: any) =>
+        integrations.name !== accIntegration.name
+      )
     ) {
       acc.push(integrations);
     }

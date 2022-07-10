@@ -1,4 +1,5 @@
 /* eslint-disable max-lines */
+import { __DEBUG_BUILD__ } from "../../types/src/globals.ts";
 import {
   Attachment,
   Breadcrumb,

@@ -27,6 +27,7 @@ import { Breadcrumbs } from "./integrations/index.ts";
 import { BREADCRUMB_INTEGRATION_ID } from "./integrations/breadcrumbs.ts";
 import { BrowserTransportOptions } from "./transports/types.ts";
 import { sendReport } from "./transports/utils.ts";
+import { __DEBUG_BUILD__ } from "../../types/src/globals.ts";
 
 const globalObject = getGlobalObject<Window>();
 

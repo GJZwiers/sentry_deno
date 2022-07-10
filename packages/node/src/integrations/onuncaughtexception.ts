@@ -1,9 +1,10 @@
-import { getCurrentHub, Scope } from '@sentry/core';
-import { Integration } from '@sentry/types';
-import { logger } from '@sentry/utils';
+import { getCurrentHub, Scope } from "@sentry/core";
+import { Integration } from "@sentry/types";
+import { logger } from "@sentry/utils";
+import { __DEBUG_BUILD__ } from "../../../types/src/globals.ts";
 
-import { NodeClient } from '../client';
-import { logAndExitProcess } from './utils/errorhandling';
+import { NodeClient } from "../client";
+import { logAndExitProcess } from "./utils/errorhandling";
 
 type OnFatalErrorHandler = (firstError: Error, secondError?: Error) => void;
 
@@ -12,7 +13,7 @@ export class OnUncaughtException implements Integration {
   /**
    * @inheritDoc
    */
-  public static id: string = 'OnUncaughtException';
+  public static id: string = "OnUncaughtException";
 
   /**
    * @inheritDoc
@@ -41,7 +42,7 @@ export class OnUncaughtException implements Integration {
    * @inheritDoc
    */
   public setupOnce(): void {
-    global.process.on('uncaughtException', this.handler.bind(this));
+    global.process.on("uncaughtException", this.handler.bind(this));
   }
 
   /**
@@ -77,10 +78,12 @@ export class OnUncaughtException implements Integration {
 
         if (hub.getIntegration(OnUncaughtException)) {
           hub.withScope((scope: Scope) => {
-            scope.setLevel('fatal');
+            scope.setLevel("fatal");
             hub.captureException(error, {
               originalException: error,
-              data: { mechanism: { handled: false, type: 'onuncaughtexception' } },
+              data: {
+                mechanism: { handled: false, type: "onuncaughtexception" },
+              },
             });
             if (!calledFatalError) {
               calledFatalError = true;
@@ -96,7 +99,9 @@ export class OnUncaughtException implements Integration {
       } else if (calledFatalError) {
         // we hit an error *after* calling onFatalError - pretty boned at this point, just shut it down
         __DEBUG_BUILD__ &&
-          logger.warn('uncaught exception after calling fatal error shutdown callback - this is bad! forcing shutdown');
+          logger.warn(
+            "uncaught exception after calling fatal error shutdown callback - this is bad! forcing shutdown",
+          );
         logAndExitProcess(error);
       } else if (!caughtSecondError) {
         // two cases for how we can hit this branch:

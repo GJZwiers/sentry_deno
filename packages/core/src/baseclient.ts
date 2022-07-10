@@ -1,5 +1,6 @@
 /* eslint-disable max-lines */
 import { Scope, updateSession } from "../../hub/src/index.ts";
+import { __DEBUG_BUILD__ } from "../../types/src/globals.ts";
 import {
   Client,
   ClientOptions,
@@ -253,7 +254,7 @@ export abstract class BaseClient<O extends ClientOptions> implements Client<O> {
     const transport = this._transport;
     if (transport) {
       return this._isClientDoneProcessing(timeout).then((clientFinished) => {
-        return transport.flush(timeout).then((transportFlushed) =>
+        return transport.flush(timeout).then((transportFlushed: any) =>
           clientFinished && transportFlushed
         );
       });
@@ -528,7 +529,7 @@ export abstract class BaseClient<O extends ClientOptions> implements Client<O> {
     const normalized: Event = {
       ...event,
       ...(event.breadcrumbs && {
-        breadcrumbs: event.breadcrumbs.map((b) => ({
+        breadcrumbs: event.breadcrumbs.map((b: any) => ({
           ...b,
           ...(b.data && {
             data: normalize(b.data, depth, maxBreadth),
@@ -568,7 +569,7 @@ export abstract class BaseClient<O extends ClientOptions> implements Client<O> {
 
     // event.spans[].data may contain circular/dangerous data so we need to normalize it
     if (event.spans) {
-      normalized.spans = event.spans.map((span) => {
+      normalized.spans = event.spans.map((span: any) => {
         // We cannot use the spread operator here because `toJSON` on `span` is non-enumerable
         if (span.data) {
           span.data = normalize(span.data, depth, maxBreadth);
@@ -769,7 +770,7 @@ export abstract class BaseClient<O extends ClientOptions> implements Client<O> {
    */
   protected _sendEnvelope(envelope: Envelope): void {
     if (this._transport && this._dsn) {
-      this._transport.send(envelope).then(null, (reason) => {
+      this._transport.send(envelope).then(null, (reason: any) => {
         __DEBUG_BUILD__ && logger.error("Error while sending event:", reason);
       });
     } else {

@@ -1,13 +1,13 @@
-import { EventDropReason } from './clientreport';
-import { DataCategory } from './datacategory';
-import { DsnComponents } from './dsn';
-import { Event, EventHint } from './event';
-import { Integration, IntegrationClass } from './integration';
-import { ClientOptions } from './options';
-import { Scope } from './scope';
-import { Session, SessionAggregates } from './session';
-import { Severity, SeverityLevel } from './severity';
-import { Transport } from './transport';
+import { EventDropReason } from "./clientreport.ts";
+import { DataCategory } from "./datacategory.ts";
+import { DsnComponents } from "./dsn.ts";
+import { Event, EventHint } from "./event.ts";
+import { Integration, IntegrationClass } from "./integration.ts";
+import { ClientOptions } from "./options.ts";
+import { Scope } from "./scope.ts";
+import { Session, SessionAggregates } from "./session.ts";
+import { Severity, SeverityLevel } from "./severity.ts";
+import { Transport } from "./transport.ts";
 
 /**
  * User-Facing Sentry SDK Client.
@@ -16,7 +16,6 @@ import { Transport } from './transport';
  * been installed. It allows to send events to Sentry, record breadcrumbs and
  * set a context included in every event. Since the SDK mutates its environment,
  * there will only be one instance during runtime.
- *
  */
 export interface Client<O extends ClientOptions = ClientOptions> {
   /**
@@ -27,7 +26,11 @@ export interface Client<O extends ClientOptions = ClientOptions> {
    * @param scope An optional scope containing event metadata.
    * @returns The event id
    */
-  captureException(exception: any, hint?: EventHint, scope?: Scope): string | undefined;
+  captureException(
+    exception: any,
+    hint?: EventHint,
+    scope?: Scope,
+  ): string | undefined;
 
   /**
    * Captures a message event and sends it to Sentry.
@@ -54,7 +57,11 @@ export interface Client<O extends ClientOptions = ClientOptions> {
    * @param scope An optional scope containing event metadata.
    * @returns The event id
    */
-  captureEvent(event: Event, hint?: EventHint, scope?: Scope): string | undefined;
+  captureEvent(
+    event: Event,
+    hint?: EventHint,
+    scope?: Scope,
+  ): string | undefined;
 
   /**
    * Captures a session
@@ -98,7 +105,9 @@ export interface Client<O extends ClientOptions = ClientOptions> {
   flush(timeout?: number): PromiseLike<boolean>;
 
   /** Returns an array of installed integrations on the client. */
-  getIntegration<T extends Integration>(integration: IntegrationClass<T>): T | null;
+  getIntegration<T extends Integration>(
+    integration: IntegrationClass<T>,
+  ): T | null;
 
   /** This is an internal function to setup all integrations that should run on the client */
   setupIntegrations(): void;

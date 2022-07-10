@@ -1,3 +1,4 @@
+import { __DEBUG_BUILD__ } from "../../types/src/globals.ts";
 import { DsnComponents, DsnLike, DsnProtocol } from "../../types/src/index.ts";
 
 import { SentryError } from "./error.ts";
@@ -99,7 +100,7 @@ function validateDsn(dsn: DsnComponents): boolean | void {
   ];
   requiredComponents.forEach((component) => {
     if (!dsn[component]) {
-      throw new SentryError(`Invalid Sentry Dsn: ${component} missing`);
+      throw new SentryError(`Invalid Sentry Dsn: ${String(component)} missing`);
     }
   });
 

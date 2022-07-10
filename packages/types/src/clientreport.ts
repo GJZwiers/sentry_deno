@@ -1,12 +1,12 @@
-import { DataCategory } from './datacategory';
+import { DataCategory } from "./datacategory.ts";
 
 export type EventDropReason =
-  | 'before_send'
-  | 'event_processor'
-  | 'network_error'
-  | 'queue_overflow'
-  | 'ratelimit_backoff'
-  | 'sample_rate';
+  | "before_send"
+  | "event_processor"
+  | "network_error"
+  | "queue_overflow"
+  | "ratelimit_backoff"
+  | "sample_rate";
 
 export type Outcome = {
   reason: EventDropReason;

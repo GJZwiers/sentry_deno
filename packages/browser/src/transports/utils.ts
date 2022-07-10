@@ -1,3 +1,4 @@
+import { __DEBUG_BUILD__ } from "../../../types/src/globals.ts";
 import {
   getGlobalObject,
   isNativeFetch,

@@ -1,4 +1,4 @@
-import { Severity, SeverityLevel } from './severity';
+import { Severity, SeverityLevel } from "./severity.ts";
 
 /** JSDoc */
 export interface Breadcrumb {

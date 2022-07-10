@@ -1,12 +1,13 @@
-import { BaseClient, Scope, SDK_VERSION } from '@sentry/core';
-import { SessionFlusher } from '@sentry/hub';
-import { Event, EventHint, Severity, SeverityLevel } from '@sentry/types';
-import { logger, resolvedSyncPromise } from '@sentry/utils';
-import * as os from 'os';
-import { TextEncoder } from 'util';
+import { BaseClient, Scope, SDK_VERSION } from "@sentry/core";
+import { SessionFlusher } from "@sentry/hub";
+import { Event, EventHint, Severity, SeverityLevel } from "@sentry/types";
+import { logger, resolvedSyncPromise } from "@sentry/utils";
+import * as os from "os";
+import { TextEncoder } from "util";
+import { __DEBUG_BUILD__ } from "../../types/src/globals.ts";
 
-import { eventFromMessage, eventFromUnknownInput } from './eventbuilder';
-import { NodeClientOptions } from './types';
+import { eventFromMessage, eventFromUnknownInput } from "./eventbuilder";
+import { NodeClientOptions } from "./types";
 
 /**
  * The Sentry Node SDK Client.
@@ -24,10 +25,10 @@ export class NodeClient extends BaseClient<NodeClientOptions> {
   public constructor(options: NodeClientOptions) {
     options._metadata = options._metadata || {};
     options._metadata.sdk = options._metadata.sdk || {
-      name: 'sentry.javascript.node',
+      name: "sentry.javascript.node",
       packages: [
         {
-          name: 'npm:@sentry/node',
+          name: "npm:@sentry/node",
           version: SDK_VERSION,
         },
       ],
@@ -47,7 +48,11 @@ export class NodeClient extends BaseClient<NodeClientOptions> {
    * @inheritDoc
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
-  public captureException(exception: any, hint?: EventHint, scope?: Scope): string | undefined {
+  public captureException(
+    exception: any,
+    hint?: EventHint,
+    scope?: Scope,
+  ): string | undefined {
     // Check if the flag `autoSessionTracking` is enabled, and if `_sessionFlusher` exists because it is initialised only
     // when the `requestHandler` middleware is used, and hence the expectation is to have SessionAggregates payload
     // sent to the Server only when the `requestHandler` middleware is used
@@ -56,8 +61,8 @@ export class NodeClient extends BaseClient<NodeClientOptions> {
 
       // Necessary checks to ensure this is code block is executed only within a request
       // Should override the status only if `requestSession.status` is `Ok`, which is its initial stage
-      if (requestSession && requestSession.status === 'ok') {
-        requestSession.status = 'errored';
+      if (requestSession && requestSession.status === "ok") {
+        requestSession.status = "errored";
       }
     }
 
@@ -67,14 +72,18 @@ export class NodeClient extends BaseClient<NodeClientOptions> {
   /**
    * @inheritDoc
    */
-  public captureEvent(event: Event, hint?: EventHint, scope?: Scope): string | undefined {
+  public captureEvent(
+    event: Event,
+    hint?: EventHint,
+    scope?: Scope,
+  ): string | undefined {
     // Check if the flag `autoSessionTracking` is enabled, and if `_sessionFlusher` exists because it is initialised only
     // when the `requestHandler` middleware is used, and hence the expectation is to have SessionAggregates payload
     // sent to the Server only when the `requestHandler` middleware is used
     if (this._options.autoSessionTracking && this._sessionFlusher && scope) {
-      const eventType = event.type || 'exception';
-      const isException =
-        eventType === 'exception' && event.exception && event.exception.values && event.exception.values.length > 0;
+      const eventType = event.type || "exception";
+      const isException = eventType === "exception" && event.exception &&
+        event.exception.values && event.exception.values.length > 0;
 
       // If the event is of type Exception, then a request session should be captured
       if (isException) {
@@ -82,8 +91,8 @@ export class NodeClient extends BaseClient<NodeClientOptions> {
 
         // Ensure that this is happening within the bounds of a request, and make sure not to override
         // Session Status if Errored / Crashed
-        if (requestSession && requestSession.status === 'ok') {
-          requestSession.status = 'errored';
+        if (requestSession && requestSession.status === "ok") {
+          requestSession.status = "errored";
         }
       }
     }
@@ -92,7 +101,6 @@ export class NodeClient extends BaseClient<NodeClientOptions> {
   }
 
   /**
-   *
    * @inheritdoc
    */
   public close(timeout?: number): PromiseLike<boolean> {
@@ -104,7 +112,10 @@ export class NodeClient extends BaseClient<NodeClientOptions> {
   public initSessionFlusher(): void {
     const { release, environment } = this._options;
     if (!release) {
-      __DEBUG_BUILD__ && logger.warn('Cannot initialise an instance of SessionFlusher if no release is provided!');
+      __DEBUG_BUILD__ &&
+        logger.warn(
+          "Cannot initialise an instance of SessionFlusher if no release is provided!",
+        );
     } else {
       this._sessionFlusher = new SessionFlusher(this, {
         release,
@@ -117,8 +128,13 @@ export class NodeClient extends BaseClient<NodeClientOptions> {
    * @inheritDoc
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
-  public eventFromException(exception: any, hint?: EventHint): PromiseLike<Event> {
-    return resolvedSyncPromise(eventFromUnknownInput(this._options.stackParser, exception, hint));
+  public eventFromException(
+    exception: any,
+    hint?: EventHint,
+  ): PromiseLike<Event> {
+    return resolvedSyncPromise(
+      eventFromUnknownInput(this._options.stackParser, exception, hint),
+    );
   }
 
   /**
@@ -127,28 +143,38 @@ export class NodeClient extends BaseClient<NodeClientOptions> {
   public eventFromMessage(
     message: string,
     // eslint-disable-next-line deprecation/deprecation
-    level: Severity | SeverityLevel = 'info',
+    level: Severity | SeverityLevel = "info",
     hint?: EventHint,
   ): PromiseLike<Event> {
     return resolvedSyncPromise(
-      eventFromMessage(this._options.stackParser, message, level, hint, this._options.attachStacktrace),
+      eventFromMessage(
+        this._options.stackParser,
+        message,
+        level,
+        hint,
+        this._options.attachStacktrace,
+      ),
     );
   }
 
   /**
    * @inheritDoc
    */
-  protected _prepareEvent(event: Event, hint: EventHint, scope?: Scope): PromiseLike<Event | null> {
-    event.platform = event.platform || 'node';
+  protected _prepareEvent(
+    event: Event,
+    hint: EventHint,
+    scope?: Scope,
+  ): PromiseLike<Event | null> {
+    event.platform = event.platform || "node";
     event.contexts = {
       ...event.contexts,
       runtime: event.contexts?.runtime || {
-        name: 'node',
+        name: "node",
         version: global.process.version,
       },
     };
-    event.server_name =
-      event.server_name || this.getOptions().serverName || global.process.env.SENTRY_NAME || os.hostname();
+    event.server_name = event.server_name || this.getOptions().serverName ||
+      global.process.env.SENTRY_NAME || os.hostname();
     return super._prepareEvent(event, hint, scope);
   }
 
@@ -158,7 +184,10 @@ export class NodeClient extends BaseClient<NodeClientOptions> {
    */
   protected _captureRequestSession(): void {
     if (!this._sessionFlusher) {
-      __DEBUG_BUILD__ && logger.warn('Discarded request mode session because autoSessionTracking option was disabled');
+      __DEBUG_BUILD__ &&
+        logger.warn(
+          "Discarded request mode session because autoSessionTracking option was disabled",
+        );
     } else {
       this._sessionFlusher.incrementSessionStatusCount();
     }

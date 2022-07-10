@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { captureException, getCurrentHub, startTransaction, withScope } from '@sentry/core';
-import { Event, Span } from '@sentry/types';
+import {
+  captureException,
+  getCurrentHub,
+  startTransaction,
+  withScope,
+} from "@sentry/core";
+import { Event, Span } from "@sentry/types";
 import {
   AddRequestDataToEventOptions,
   addRequestDataToTransaction,
@@ -9,15 +14,21 @@ import {
   isString,
   logger,
   parseBaggageSetMutability,
-} from '@sentry/utils';
-import * as domain from 'domain';
-import * as http from 'http';
+} from "@sentry/utils";
+import * as domain from "domain";
+import * as http from "http";
+import { __DEBUG_BUILD__ } from "../../types/src/globals.ts";
 
-import { NodeClient } from './client';
+import { NodeClient } from "./client";
 // TODO (v8 / XXX) Remove these imports
-import type { ParseRequestOptions } from './requestDataDeprecated';
-import { parseRequest } from './requestDataDeprecated';
-import { addRequestDataToEvent, extractRequestData, flush, isAutoSessionTrackingEnabled } from './sdk';
+import type { ParseRequestOptions } from "./requestDataDeprecated";
+import { parseRequest } from "./requestDataDeprecated";
+import {
+  addRequestDataToEvent,
+  extractRequestData,
+  flush,
+  isAutoSessionTrackingEnabled,
+} from "./sdk";
 
 /**
  * Express-compatible tracing handler.
@@ -34,16 +45,21 @@ export function tracingHandler(): (
     next: (error?: any) => void,
   ): void {
     // If there is a trace header set, we extract the data from it (parentSpanId, traceId, and sampling decision)
-    const traceparentData =
-      req.headers && isString(req.headers['sentry-trace']) && extractTraceparentData(req.headers['sentry-trace']);
-    const rawBaggageString = req.headers && isString(req.headers.baggage) && req.headers.baggage;
+    const traceparentData = req.headers &&
+      isString(req.headers["sentry-trace"]) &&
+      extractTraceparentData(req.headers["sentry-trace"]);
+    const rawBaggageString = req.headers && isString(req.headers.baggage) &&
+      req.headers.baggage;
 
-    const baggage = parseBaggageSetMutability(rawBaggageString, traceparentData);
+    const baggage = parseBaggageSetMutability(
+      rawBaggageString,
+      traceparentData,
+    );
 
     const transaction = startTransaction(
       {
         name: extractPathForTransaction(req, { path: true, method: true }),
-        op: 'http.server',
+        op: "http.server",
         ...traceparentData,
         metadata: { baggage },
       },
@@ -52,7 +68,7 @@ export function tracingHandler(): (
     );
 
     // We put the transaction on the scope so users can attach children to it
-    getCurrentHub().configureScope(scope => {
+    getCurrentHub().configureScope((scope) => {
       scope.setSpan(transaction);
     });
 
@@ -61,7 +77,7 @@ export function tracingHandler(): (
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     (res as any).__sentry_transaction = transaction;
 
-    res.once('finish', () => {
+    res.once("finish", () => {
       // Push `transaction.finish` to the next event loop so open spans have a chance to finish before the transaction
       // closes
       setImmediate(() => {
@@ -75,12 +91,11 @@ export function tracingHandler(): (
   };
 }
 
-export type RequestHandlerOptions =
-  // TODO (v8 / XXX) Remove ParseRequestOptions type and eslint override
-  // eslint-disable-next-line deprecation/deprecation
-  | (ParseRequestOptions | AddRequestDataToEventOptions) & {
-      flushTimeout?: number;
-    };
+export type RequestHandlerOptions = // TODO (v8 / XXX) Remove ParseRequestOptions type and eslint override
+// eslint-disable-next-line deprecation/deprecation
+(ParseRequestOptions | AddRequestDataToEventOptions) & {
+  flushTimeout?: number;
+};
 
 /**
  * Express compatible request handler.
@@ -88,7 +103,11 @@ export type RequestHandlerOptions =
  */
 export function requestHandler(
   options?: RequestHandlerOptions,
-): (req: http.IncomingMessage, res: http.ServerResponse, next: (error?: any) => void) => void {
+): (
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+  next: (error?: any) => void,
+) => void {
   const currentHub = getCurrentHub();
   const client = currentHub.getClient<NodeClient>();
   // Initialise an instance of SessionFlusher on the client when `autoSessionTracking` is enabled and the
@@ -110,22 +129,28 @@ export function requestHandler(
   ): void {
     // TODO (v8 / XXX) Remove this shim and just use `addRequestDataToEvent`
     let backwardsCompatibleEventProcessor: (event: Event) => Event;
-    if (options && 'include' in options) {
-      backwardsCompatibleEventProcessor = (event: Event) => addRequestDataToEvent(event, req, options);
+    if (options && "include" in options) {
+      backwardsCompatibleEventProcessor = (event: Event) =>
+        addRequestDataToEvent(event, req, options);
     } else {
       // eslint-disable-next-line deprecation/deprecation
-      backwardsCompatibleEventProcessor = (event: Event) => parseRequest(event, req, options as ParseRequestOptions);
+      backwardsCompatibleEventProcessor = (event: Event) =>
+        parseRequest(event, req, options as ParseRequestOptions);
     }
 
     if (options && options.flushTimeout && options.flushTimeout > 0) {
       // eslint-disable-next-line @typescript-eslint/unbound-method
       const _end = res.end;
-      res.end = function (chunk?: any | (() => void), encoding?: string | (() => void), cb?: () => void): void {
+      res.end = function (
+        chunk?: any | (() => void),
+        encoding?: string | (() => void),
+        cb?: () => void,
+      ): void {
         void flush(options.flushTimeout)
           .then(() => {
             _end.call(this, chunk, encoding, cb);
           })
-          .then(null, e => {
+          .then(null, (e) => {
             __DEBUG_BUILD__ && logger.error(e);
             _end.call(this, chunk, encoding, cb);
           });
@@ -134,24 +159,24 @@ export function requestHandler(
     const local = domain.create();
     local.add(req);
     local.add(res);
-    local.on('error', next);
+    local.on("error", next);
 
     local.run(() => {
       const currentHub = getCurrentHub();
 
-      currentHub.configureScope(scope => {
+      currentHub.configureScope((scope) => {
         scope.addEventProcessor(backwardsCompatibleEventProcessor);
         const client = currentHub.getClient<NodeClient>();
         if (isAutoSessionTrackingEnabled(client)) {
           const scope = currentHub.getScope();
           if (scope) {
             // Set `status` of `RequestSession` to Ok, at the beginning of the request
-            scope.setRequestSession({ status: 'ok' });
+            scope.setRequestSession({ status: "ok" });
           }
         }
       });
 
-      res.once('finish', () => {
+      res.once("finish", () => {
         const client = currentHub.getClient<NodeClient>();
         if (isAutoSessionTrackingEnabled(client)) {
           setImmediate(() => {
@@ -182,7 +207,8 @@ interface MiddlewareError extends Error {
 
 /** JSDoc */
 function getStatusCodeFromResponse(error: MiddlewareError): number {
-  const statusCode = error.status || error.statusCode || error.status_code || (error.output && error.output.statusCode);
+  const statusCode = error.status || error.statusCode || error.status_code ||
+    (error.output && error.output.statusCode);
   return statusCode ? parseInt(statusCode as string, 10) : 500;
 }
 
@@ -215,10 +241,11 @@ export function errorHandler(options?: {
     next: (error: MiddlewareError) => void,
   ): void {
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    const shouldHandleError = (options && options.shouldHandleError) || defaultShouldHandleError;
+    const shouldHandleError = (options && options.shouldHandleError) ||
+      defaultShouldHandleError;
 
     if (shouldHandleError(error)) {
-      withScope(_scope => {
+      withScope((_scope) => {
         // For some reason we need to set the transaction on the scope again
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         const transaction = (res as any).__sentry_transaction as Span;
@@ -233,14 +260,15 @@ export function errorHandler(options?: {
           // instantiated when the the`requestHandler` middleware is initialised, which indicates that we should be
           // running in SessionAggregates mode
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          const isSessionAggregatesMode = (client as any)._sessionFlusher !== undefined;
+          const isSessionAggregatesMode =
+            (client as any)._sessionFlusher !== undefined;
           if (isSessionAggregatesMode) {
             const requestSession = _scope.getRequestSession();
             // If an error bubbles to the `errorHandler`, then this is an unhandled error, and should be reported as a
             // Crashed session. The `_requestSession.status` is checked to ensure that this error is happening within
             // the bounds of a request, and if so the status is updated
             if (requestSession && requestSession.status !== undefined) {
-              requestSession.status = 'crashed';
+              requestSession.status = "crashed";
             }
           }
         }
@@ -260,6 +288,9 @@ export function errorHandler(options?: {
 
 // TODO (v8 / #5257): Remove this
 // eslint-disable-next-line deprecation/deprecation
-export type { ParseRequestOptions, ExpressRequest } from './requestDataDeprecated';
+export type {
+  ExpressRequest,
+  ParseRequestOptions,
+} from "./requestDataDeprecated";
 // eslint-disable-next-line deprecation/deprecation
-export { parseRequest, extractRequestData } from './requestDataDeprecated';
+export { extractRequestData, parseRequest } from "./requestDataDeprecated";

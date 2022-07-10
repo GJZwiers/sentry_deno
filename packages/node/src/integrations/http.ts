@@ -1,8 +1,14 @@
-import { getCurrentHub } from '@sentry/core';
-import { Integration, Span } from '@sentry/types';
-import { fill, logger, mergeAndSerializeBaggage, parseSemver } from '@sentry/utils';
-import * as http from 'http';
-import * as https from 'https';
+import { getCurrentHub } from "@sentry/core";
+import { Integration, Span } from "@sentry/types";
+import {
+  fill,
+  logger,
+  mergeAndSerializeBaggage,
+  parseSemver,
+} from "@sentry/utils";
+import * as http from "http";
+import * as https from "https";
+import { __DEBUG_BUILD__ } from "../../../types/src/globals.ts";
 
 import {
   cleanSpanDescription,
@@ -11,7 +17,7 @@ import {
   normalizeRequestArgs,
   RequestMethod,
   RequestMethodArgs,
-} from './utils/http';
+} from "./utils/http";
 
 const NODE_VERSION = parseSemver(process.versions.node);
 
@@ -20,7 +26,7 @@ export class Http implements Integration {
   /**
    * @inheritDoc
    */
-  public static id: string = 'Http';
+  public static id: string = "Http";
 
   /**
    * @inheritDoc
@@ -40,9 +46,15 @@ export class Http implements Integration {
   /**
    * @inheritDoc
    */
-  public constructor(options: { breadcrumbs?: boolean; tracing?: boolean } = {}) {
-    this._breadcrumbs = typeof options.breadcrumbs === 'undefined' ? true : options.breadcrumbs;
-    this._tracing = typeof options.tracing === 'undefined' ? false : options.tracing;
+  public constructor(
+    options: { breadcrumbs?: boolean; tracing?: boolean } = {},
+  ) {
+    this._breadcrumbs = typeof options.breadcrumbs === "undefined"
+      ? true
+      : options.breadcrumbs;
+    this._tracing = typeof options.tracing === "undefined"
+      ? false
+      : options.tracing;
   }
 
   /**
@@ -54,21 +66,24 @@ export class Http implements Integration {
       return;
     }
 
-    const wrappedHandlerMaker = _createWrappedRequestMethodFactory(this._breadcrumbs, this._tracing);
+    const wrappedHandlerMaker = _createWrappedRequestMethodFactory(
+      this._breadcrumbs,
+      this._tracing,
+    );
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const httpModule = require('http');
-    fill(httpModule, 'get', wrappedHandlerMaker);
-    fill(httpModule, 'request', wrappedHandlerMaker);
+    const httpModule = require("http");
+    fill(httpModule, "get", wrappedHandlerMaker);
+    fill(httpModule, "request", wrappedHandlerMaker);
 
     // NOTE: Prior to Node 9, `https` used internals of `http` module, thus we don't patch it.
     // If we do, we'd get double breadcrumbs and double spans for `https` calls.
     // It has been changed in Node 9, so for all versions equal and above, we patch `https` separately.
     if (NODE_VERSION.major && NODE_VERSION.major > 8) {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const httpsModule = require('https');
-      fill(httpsModule, 'get', wrappedHandlerMaker);
-      fill(httpsModule, 'request', wrappedHandlerMaker);
+      const httpsModule = require("https");
+      fill(httpsModule, "get", wrappedHandlerMaker);
+      fill(httpsModule, "request", wrappedHandlerMaker);
     }
   }
 }
@@ -76,7 +91,9 @@ export class Http implements Integration {
 // for ease of reading below
 type OriginalRequestMethod = RequestMethod;
 type WrappedRequestMethod = RequestMethod;
-type WrappedRequestMethodFactory = (original: OriginalRequestMethod) => WrappedRequestMethod;
+type WrappedRequestMethodFactory = (
+  original: OriginalRequestMethod,
+) => WrappedRequestMethod;
 
 /**
  * Function which creates a function which creates wrapped versions of internal `request` and `get` calls within `http`
@@ -91,8 +108,13 @@ function _createWrappedRequestMethodFactory(
   breadcrumbsEnabled: boolean,
   tracingEnabled: boolean,
 ): WrappedRequestMethodFactory {
-  return function wrappedRequestMethodFactory(originalRequestMethod: OriginalRequestMethod): WrappedRequestMethod {
-    return function wrappedMethod(this: typeof http | typeof https, ...args: RequestMethodArgs): http.ClientRequest {
+  return function wrappedRequestMethodFactory(
+    originalRequestMethod: OriginalRequestMethod,
+  ): WrappedRequestMethod {
+    return function wrappedMethod(
+      this: typeof http | typeof https,
+      ...args: RequestMethodArgs
+    ): http.ClientRequest {
       // eslint-disable-next-line @typescript-eslint/no-this-alias
       const httpModule = this;
 
@@ -113,8 +135,8 @@ function _createWrappedRequestMethodFactory(
         parentSpan = scope.getSpan();
         if (parentSpan) {
           span = parentSpan.startChild({
-            description: `${requestOptions.method || 'GET'} ${requestUrl}`,
-            op: 'http.client',
+            description: `${requestOptions.method || "GET"} ${requestUrl}`,
+            op: "http.client",
           });
 
           const sentryTraceHeader = span.toTraceparent();
@@ -123,12 +145,14 @@ function _createWrappedRequestMethodFactory(
               `[Tracing] Adding sentry-trace header ${sentryTraceHeader} to outgoing request to ${requestUrl}: `,
             );
 
-          const baggage = parentSpan.transaction && parentSpan.transaction.getBaggage();
-          const headerBaggageString = requestOptions.headers && requestOptions.headers.baggage;
+          const baggage = parentSpan.transaction &&
+            parentSpan.transaction.getBaggage();
+          const headerBaggageString = requestOptions.headers &&
+            requestOptions.headers.baggage;
 
           requestOptions.headers = {
             ...requestOptions.headers,
-            'sentry-trace': sentryTraceHeader,
+            "sentry-trace": sentryTraceHeader,
             baggage: mergeAndSerializeBaggage(baggage, headerBaggageString),
           };
         }
@@ -137,30 +161,41 @@ function _createWrappedRequestMethodFactory(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       return originalRequestMethod
         .apply(httpModule, requestArgs)
-        .once('response', function (this: http.ClientRequest, res: http.IncomingMessage): void {
-          // eslint-disable-next-line @typescript-eslint/no-this-alias
-          const req = this;
-          if (breadcrumbsEnabled) {
-            addRequestBreadcrumb('response', requestUrl, req, res);
-          }
-          if (tracingEnabled && span) {
-            if (res.statusCode) {
-              span.setHttpStatus(res.statusCode);
+        .once(
+          "response",
+          function (this: http.ClientRequest, res: http.IncomingMessage): void {
+            // eslint-disable-next-line @typescript-eslint/no-this-alias
+            const req = this;
+            if (breadcrumbsEnabled) {
+              addRequestBreadcrumb("response", requestUrl, req, res);
             }
-            span.description = cleanSpanDescription(span.description, requestOptions, req);
-            span.finish();
-          }
-        })
-        .once('error', function (this: http.ClientRequest): void {
+            if (tracingEnabled && span) {
+              if (res.statusCode) {
+                span.setHttpStatus(res.statusCode);
+              }
+              span.description = cleanSpanDescription(
+                span.description,
+                requestOptions,
+                req,
+              );
+              span.finish();
+            }
+          },
+        )
+        .once("error", function (this: http.ClientRequest): void {
           // eslint-disable-next-line @typescript-eslint/no-this-alias
           const req = this;
 
           if (breadcrumbsEnabled) {
-            addRequestBreadcrumb('error', requestUrl, req);
+            addRequestBreadcrumb("error", requestUrl, req);
           }
           if (tracingEnabled && span) {
             span.setHttpStatus(500);
-            span.description = cleanSpanDescription(span.description, requestOptions, req);
+            span.description = cleanSpanDescription(
+              span.description,
+              requestOptions,
+              req,
+            );
             span.finish();
           }
         });
@@ -171,20 +206,25 @@ function _createWrappedRequestMethodFactory(
 /**
  * Captures Breadcrumb based on provided request/response pair
  */
-function addRequestBreadcrumb(event: string, url: string, req: http.ClientRequest, res?: http.IncomingMessage): void {
+function addRequestBreadcrumb(
+  event: string,
+  url: string,
+  req: http.ClientRequest,
+  res?: http.IncomingMessage,
+): void {
   if (!getCurrentHub().getIntegration(Http)) {
     return;
   }
 
   getCurrentHub().addBreadcrumb(
     {
-      category: 'http',
+      category: "http",
       data: {
         method: req.method,
         status_code: res && res.statusCode,
         url,
       },
-      type: 'http',
+      type: "http",
     },
     {
       event,

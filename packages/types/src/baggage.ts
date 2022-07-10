@@ -1,8 +1,10 @@
-import { DynamicSamplingContext } from './envelope';
+import { DynamicSamplingContext } from "./envelope.ts";
 
 export type AllowedBaggageKeys = keyof DynamicSamplingContext;
 
-export type BaggageObj = Partial<Record<AllowedBaggageKeys, string> & Record<string, string>>;
+export type BaggageObj = Partial<
+  Record<AllowedBaggageKeys, string> & Record<string, string>
+>;
 
 /**
  * The baggage data structure represents key,value pairs based on the baggage

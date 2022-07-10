@@ -1,6 +1,12 @@
-import { addRequestDataToEvent, captureException, flush, getCurrentHub, startTransaction } from '@sentry/node';
-import { extractTraceparentData, hasTracingEnabled } from '@sentry/tracing';
-import { Transaction } from '@sentry/types';
+import {
+  addRequestDataToEvent,
+  captureException,
+  flush,
+  getCurrentHub,
+  startTransaction,
+} from "@sentry/node";
+import { extractTraceparentData, hasTracingEnabled } from "@sentry/tracing";
+import { Transaction } from "@sentry/types";
 import {
   addExceptionMechanism,
   isString,
@@ -8,20 +14,26 @@ import {
   objectify,
   parseBaggageSetMutability,
   stripUrlQueryAndFragment,
-} from '@sentry/utils';
-import * as domain from 'domain';
-import { NextApiHandler, NextApiRequest, NextApiResponse } from 'next';
+} from "@sentry/utils";
+import * as domain from "domain";
+import { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
+import { __DEBUG_BUILD__ } from "../../../types/src/globals.ts";
 
 // This is the same as the `NextApiHandler` type, except instead of having a return type of `void | Promise<void>`, it's
 // only `Promise<void>`, because wrapped handlers are always async
-export type WrappedNextApiHandler = (req: NextApiRequest, res: NextApiResponse) => Promise<void>;
+export type WrappedNextApiHandler = (
+  req: NextApiRequest,
+  res: NextApiResponse,
+) => Promise<void>;
 
 export type AugmentedNextApiResponse = NextApiResponse & {
   __sentryTransaction?: Transaction;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const withSentry = (origHandler: NextApiHandler): WrappedNextApiHandler => {
+export const withSentry = (
+  origHandler: NextApiHandler,
+): WrappedNextApiHandler => {
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   return async (req, res) => {
     // first order of business: monkeypatch `res.end()` so that it will wait for us to send events to sentry before it
@@ -41,18 +53,29 @@ export const withSentry = (origHandler: NextApiHandler): WrappedNextApiHandler =
       const currentScope = getCurrentHub().getScope();
 
       if (currentScope) {
-        currentScope.addEventProcessor(event => addRequestDataToEvent(event, req));
+        currentScope.addEventProcessor((event) =>
+          addRequestDataToEvent(event, req)
+        );
 
         if (hasTracingEnabled()) {
           // If there is a trace header set, extract the data from it (parentSpanId, traceId, and sampling decision)
           let traceparentData;
-          if (req.headers && isString(req.headers['sentry-trace'])) {
-            traceparentData = extractTraceparentData(req.headers['sentry-trace']);
-            __DEBUG_BUILD__ && logger.log(`[Tracing] Continuing trace ${traceparentData?.traceId}.`);
+          if (req.headers && isString(req.headers["sentry-trace"])) {
+            traceparentData = extractTraceparentData(
+              req.headers["sentry-trace"],
+            );
+            __DEBUG_BUILD__ &&
+              logger.log(
+                `[Tracing] Continuing trace ${traceparentData?.traceId}.`,
+              );
           }
 
-          const rawBaggageString = req.headers && isString(req.headers.baggage) && req.headers.baggage;
-          const baggage = parseBaggageSetMutability(rawBaggageString, traceparentData);
+          const rawBaggageString = req.headers &&
+            isString(req.headers.baggage) && req.headers.baggage;
+          const baggage = parseBaggageSetMutability(
+            rawBaggageString,
+            traceparentData,
+          );
 
           const url = `${req.url}`;
           // pull off query string, if any
@@ -65,12 +88,12 @@ export const withSentry = (origHandler: NextApiHandler): WrappedNextApiHandler =
               reqPath = reqPath.replace(`${value}`, `[${key}]`);
             }
           }
-          const reqMethod = `${(req.method || 'GET').toUpperCase()} `;
+          const reqMethod = `${(req.method || "GET").toUpperCase()} `;
 
           const transaction = startTransaction(
             {
               name: `${reqMethod}${reqPath}`,
-              op: 'http.server',
+              op: "http.server",
               ...traceparentData,
               metadata: { baggage },
             },
@@ -88,7 +111,10 @@ export const withSentry = (origHandler: NextApiHandler): WrappedNextApiHandler =
       try {
         const handlerResult = await origHandler(req, res);
 
-        if (process.env.NODE_ENV === 'development' && !process.env.SENTRY_IGNORE_API_RESOLUTION_ERROR) {
+        if (
+          process.env.NODE_ENV === "development" &&
+          !process.env.SENTRY_IGNORE_API_RESOLUTION_ERROR
+        ) {
           // eslint-disable-next-line no-console
           console.warn(
             `[sentry] If Next.js logs a warning "API resolved without sending a response", it's a false positive, which we're working to rectify.
@@ -106,13 +132,13 @@ export const withSentry = (origHandler: NextApiHandler): WrappedNextApiHandler =
         const objectifiedErr = objectify(e);
 
         if (currentScope) {
-          currentScope.addEventProcessor(event => {
+          currentScope.addEventProcessor((event) => {
             addExceptionMechanism(event, {
-              type: 'instrument',
+              type: "instrument",
               handled: true,
               data: {
                 wrapped_handler: origHandler.name,
-                function: 'withSentry',
+                function: "withSentry",
               },
             });
             return event;
@@ -125,7 +151,7 @@ export const withSentry = (origHandler: NextApiHandler): WrappedNextApiHandler =
         // have had a chance to set the status to 500, so unless we do it ourselves now, we'll incorrectly report that
         // the transaction was error-free
         res.statusCode = 500;
-        res.statusMessage = 'Internal Server Error';
+        res.statusMessage = "Internal Server Error";
 
         // Make sure we have a chance to finish the transaction and flush events to Sentry before the handler errors
         // out. (Apps which are deployed on Vercel run their API routes in lambdas, and those lambdas will shut down the
@@ -146,8 +172,8 @@ export const withSentry = (origHandler: NextApiHandler): WrappedNextApiHandler =
   };
 };
 
-type ResponseEndMethod = AugmentedNextApiResponse['end'];
-type WrappedResponseEndMethod = AugmentedNextApiResponse['end'];
+type ResponseEndMethod = AugmentedNextApiResponse["end"];
+type WrappedResponseEndMethod = AugmentedNextApiResponse["end"];
 
 /**
  * Wrap `res.end()` so that it closes the transaction and flushes events before letting the request finish.
@@ -163,7 +189,10 @@ type WrappedResponseEndMethod = AugmentedNextApiResponse['end'];
  * @returns The wrapped version
  */
 function wrapEndMethod(origEnd: ResponseEndMethod): WrappedResponseEndMethod {
-  return async function newEnd(this: AugmentedNextApiResponse, ...args: unknown[]) {
+  return async function newEnd(
+    this: AugmentedNextApiResponse,
+    ...args: unknown[]
+  ) {
     await finishSentryProcessing(this);
 
     return origEnd.call(this, ...args);
@@ -175,7 +204,9 @@ function wrapEndMethod(origEnd: ResponseEndMethod): WrappedResponseEndMethod {
  *
  * @param res The outgoing response for this request, on which the transaction is stored
  */
-async function finishSentryProcessing(res: AugmentedNextApiResponse): Promise<void> {
+async function finishSentryProcessing(
+  res: AugmentedNextApiResponse,
+): Promise<void> {
   const { __sentryTransaction: transaction } = res;
 
   if (transaction) {
@@ -183,7 +214,7 @@ async function finishSentryProcessing(res: AugmentedNextApiResponse): Promise<vo
 
     // Push `transaction.finish` to the next event loop so open spans have a better chance of finishing before the
     // transaction closes, and make sure to wait until that's done before flushing events
-    const transactionFinished: Promise<void> = new Promise(resolve => {
+    const transactionFinished: Promise<void> = new Promise((resolve) => {
       setImmediate(() => {
         transaction.finish();
         resolve();
@@ -195,10 +226,10 @@ async function finishSentryProcessing(res: AugmentedNextApiResponse): Promise<vo
   // Flush the event queue to ensure that events get sent to Sentry before the response is finished and the lambda
   // ends. If there was an error, rethrow it so that the normal exception-handling mechanisms can apply.
   try {
-    __DEBUG_BUILD__ && logger.log('Flushing events...');
+    __DEBUG_BUILD__ && logger.log("Flushing events...");
     await flush(2000);
-    __DEBUG_BUILD__ && logger.log('Done flushing events');
+    __DEBUG_BUILD__ && logger.log("Done flushing events");
   } catch (e) {
-    __DEBUG_BUILD__ && logger.log('Error while flushing events:\n', e);
+    __DEBUG_BUILD__ && logger.log("Error while flushing events:\n", e);
   }
 }

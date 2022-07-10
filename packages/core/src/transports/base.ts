@@ -1,3 +1,4 @@
+import { __DEBUG_BUILD__ } from "../../../types/src/globals.ts";
 import {
   Envelope,
   EnvelopeItem,
@@ -82,7 +83,7 @@ export function createTransport(
       makeRequest({
         body: serializeEnvelope(filteredEnvelope, options.textEncoder),
       }).then(
-        (response) => {
+        (response: any) => {
           // We don't want to throw on NOK responses, but we want to at least log them
           if (
             response.statusCode !== undefined &&
@@ -96,7 +97,7 @@ export function createTransport(
 
           rateLimits = updateRateLimits(rateLimits, response);
         },
-        (error) => {
+        (error: any) => {
           __DEBUG_BUILD__ && logger.error("Failed while sending event:", error);
           recordEnvelopeLoss("network_error");
         },
