@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { getGlobalObject } from '@sentry/utils';
+import { getGlobalObject } from '../../../../../utils/src/index.ts';
 
-import { onHidden } from './onHidden';
+import { onHidden } from './onHidden.ts';
 
 let firstHiddenTime = -1;
 

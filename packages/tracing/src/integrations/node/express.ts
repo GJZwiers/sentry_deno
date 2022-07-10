@@ -1,5 +1,6 @@
-import { Integration, Transaction } from '@sentry/types';
-import { logger } from '@sentry/utils';
+import { __DEBUG_BUILD__ } from "../../../../types/src/globals.ts";
+import { Integration, Transaction } from '../../../../types/src/index.ts';
+import { logger } from '../../../../utils/src/index.ts';
 
 type Method =
   | 'all'

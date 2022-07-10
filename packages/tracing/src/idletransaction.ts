@@ -1,10 +1,11 @@
 /* eslint-disable max-lines */
-import { Hub } from '@sentry/hub';
-import { TransactionContext } from '@sentry/types';
-import { logger, timestampWithMs } from '@sentry/utils';
+import { Hub } from '../../hub/src/index.ts';
+import { __DEBUG_BUILD__ } from "../../types/src/globals.ts";
+import { TransactionContext } from '../../types/src/index.ts';
+import { logger, timestampWithMs } from '../../utils/src/index.ts';
 
-import { Span, SpanRecorder } from './span';
-import { Transaction } from './transaction';
+import { Span, SpanRecorder } from './span.ts';
+import { Transaction } from './transaction.ts';
 
 export const DEFAULT_IDLE_TIMEOUT = 1000;
 export const DEFAULT_FINAL_TIMEOUT = 30000;

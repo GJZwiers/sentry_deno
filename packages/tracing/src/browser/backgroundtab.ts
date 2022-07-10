@@ -1,8 +1,9 @@
-import { getGlobalObject, logger } from '@sentry/utils';
+import { __DEBUG_BUILD__ } from "../../../types/src/globals.ts";
+import { getGlobalObject, logger } from '../../../utils/src/index.ts';
 
-import { IdleTransaction } from '../idletransaction';
-import { SpanStatusType } from '../span';
-import { getActiveTransaction } from '../utils';
+import { IdleTransaction } from '../idletransaction.ts';
+import { SpanStatusType } from '../span.ts';
+import { getActiveTransaction } from '../utils.ts';
 
 const global = getGlobalObject<Window>();
 

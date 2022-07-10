@@ -1,6 +1,7 @@
-import { Hub } from '@sentry/hub';
-import { EventProcessor, Integration } from '@sentry/types';
-import { fill, isThenable, loadModule, logger } from '@sentry/utils';
+import { Hub } from '../../../../hub/src/index.ts';
+import { __DEBUG_BUILD__ } from "../../../../types/src/globals.ts";
+import { EventProcessor, Integration } from '../../../../types/src/index.ts';
+import { fill, isThenable, loadModule, logger } from '../../../../utils/src/index.ts';
 
 interface PgClient {
   prototype: {

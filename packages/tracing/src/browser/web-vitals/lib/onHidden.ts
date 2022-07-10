@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { getGlobalObject } from '@sentry/utils';
+import { getGlobalObject } from '../../../../../utils/src/index.ts';
 
 export interface OnHiddenCallback {
   (event: Event): void;

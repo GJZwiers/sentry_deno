@@ -1,8 +1,8 @@
-import { addExtensionMethods } from './hubextensions';
-import * as Integrations from './integrations';
+import { addExtensionMethods } from './hubextensions.ts';
+import * as Integrations from './integrations/index.ts';
 
-export type { RequestInstrumentationOptions } from './browser';
-export type { SpanStatusType } from './span';
+export type { RequestInstrumentationOptions } from './browser/index.ts';
+export type { SpanStatusType } from './span.ts';
 
 export { Integrations };
 
@@ -22,15 +22,15 @@ export { Integrations };
 // const instance = new BrowserTracing();
 //
 // For an example of of the new usage of BrowserTracing, see @sentry/nextjs index.client.ts
-export { BrowserTracing, BROWSER_TRACING_INTEGRATION_ID } from './browser';
+export { BrowserTracing, BROWSER_TRACING_INTEGRATION_ID } from './browser/index.ts';
 
-export { Span, spanStatusfromHttpCode } from './span';
+export { Span, spanStatusfromHttpCode } from './span.ts';
 // eslint-disable-next-line deprecation/deprecation
-export { SpanStatus } from './spanstatus';
-export { Transaction } from './transaction';
-export { instrumentOutgoingRequests, defaultRequestInstrumentationOptions } from './browser';
-export { IdleTransaction } from './idletransaction';
-export { startIdleTransaction } from './hubextensions';
+export { SpanStatus } from './spanstatus.ts';
+export { Transaction } from './transaction.ts';
+export { instrumentOutgoingRequests, defaultRequestInstrumentationOptions } from './browser/index.ts';
+export { IdleTransaction } from './idletransaction.ts';
+export { startIdleTransaction } from './hubextensions.ts';
 
 // Treeshakable guard to remove all code related to tracing
 declare const __SENTRY_TRACING__: boolean;
@@ -49,4 +49,4 @@ export {
   hasTracingEnabled,
   stripUrlQueryAndFragment,
   TRACEPARENT_REGEXP,
-} from './utils';
+} from './utils.ts';

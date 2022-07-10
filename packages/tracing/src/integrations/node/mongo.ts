@@ -1,6 +1,7 @@
-import { Hub } from '@sentry/hub';
-import { EventProcessor, Integration, SpanContext } from '@sentry/types';
-import { fill, isThenable, loadModule, logger } from '@sentry/utils';
+import { Hub } from '../../../../hub/src/index.ts';
+import { __DEBUG_BUILD__ } from "../../../../types/src/globals.ts";
+import { EventProcessor, Integration, SpanContext } from '../../../../types/src/index.ts';
+import { fill, isThenable, loadModule, logger } from '../../../../utils/src/index.ts';
 
 // This allows us to use the same array for both defaults options and the type itself.
 // (note `as const` at the end to make it a union of string literal types (i.e. "a" | "b" | ... )

@@ -1,14 +1,14 @@
 /* eslint-disable max-lines */
-import type { Baggage, Span } from '@sentry/types';
+import type { Baggage, Span } from '../../../types/src/index.ts';
 import {
   addInstrumentationHandler,
   BAGGAGE_HEADER_NAME,
   isInstanceOf,
   isMatchingPattern,
   mergeAndSerializeBaggage,
-} from '@sentry/utils';
+} from '../../../utils/src/index.ts';
 
-import { getActiveTransaction, hasTracingEnabled } from '../utils';
+import { getActiveTransaction, hasTracingEnabled } from '../utils.ts';
 
 export const DEFAULT_TRACING_ORIGINS = ['localhost', /^\//];
 

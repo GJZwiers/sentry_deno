@@ -1,7 +1,8 @@
-import { addInstrumentationHandler, logger } from '@sentry/utils';
+import { __DEBUG_BUILD__ } from "../../types/src/globals.ts";
+import { addInstrumentationHandler, logger } from '../../utils/src/index.ts';
 
-import { SpanStatusType } from './span';
-import { getActiveTransaction } from './utils';
+import { SpanStatusType } from './span.ts';
+import { getActiveTransaction } from './utils.ts';
 
 /**
  * Configures global error listeners
