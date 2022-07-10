@@ -1,6 +1,7 @@
 /* eslint-disable max-lines */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
+import { __DEBUG_BUILD__ } from "../../types/src/globals.ts";
 import { WrappedFunction } from "../../types/src/index.ts";
 
 import { getGlobalObject } from "./global.ts";
@@ -324,7 +325,6 @@ function instrumentHistory(): void {
   if (!supportsHistory()) {
     return;
   }
-
   const oldOnPopState = global.onpopstate;
   global.onpopstate = function (
     this: WindowEventHandlers,
