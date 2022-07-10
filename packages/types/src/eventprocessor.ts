@@ -1,4 +1,4 @@
-import { Event, EventHint } from './event';
+import { Event, EventHint } from "./event.ts";
 
 /**
  * Event processors are used to change the event before it will be send.
