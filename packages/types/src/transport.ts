@@ -1,7 +1,7 @@
-import { EventDropReason } from './clientreport';
-import { DataCategory } from './datacategory';
-import { Envelope } from './envelope';
-import { TextEncoderInternal } from './textencoder';
+import { EventDropReason } from "./clientreport.ts";
+import { DataCategory } from "./datacategory.ts";
+import { Envelope } from "./envelope.ts";
+import { TextEncoderInternal } from "./textencoder.ts";
 
 export type TransportRequest = {
   body: string | Uint8Array;
@@ -11,14 +11,17 @@ export type TransportMakeRequestResponse = {
   statusCode?: number;
   headers?: {
     [key: string]: string | null;
-    'x-sentry-rate-limits': string | null;
-    'retry-after': string | null;
+    "x-sentry-rate-limits": string | null;
+    "retry-after": string | null;
   };
 };
 
 export interface InternalBaseTransportOptions {
   bufferSize?: number;
-  recordDroppedEvent: (reason: EventDropReason, dataCategory: DataCategory) => void;
+  recordDroppedEvent: (
+    reason: EventDropReason,
+    dataCategory: DataCategory,
+  ) => void;
   textEncoder?: TextEncoderInternal;
 }
 
@@ -34,4 +37,6 @@ export interface Transport {
   flush(timeout?: number): PromiseLike<boolean>;
 }
 
-export type TransportRequestExecutor = (request: TransportRequest) => PromiseLike<TransportMakeRequestResponse>;
+export type TransportRequestExecutor = (
+  request: TransportRequest,
+) => PromiseLike<TransportMakeRequestResponse>;

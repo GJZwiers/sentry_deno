@@ -1,4 +1,4 @@
-import { Stacktrace } from './stacktrace';
+import { Stacktrace } from "./stacktrace.ts";
 
 /** JSDoc */
 export interface Thread {

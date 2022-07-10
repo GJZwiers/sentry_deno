@@ -1,5 +1,9 @@
-import { SentryError } from './error';
-import { rejectedSyncPromise, resolvedSyncPromise, SyncPromise } from './syncpromise';
+import { SentryError } from "./error.ts";
+import {
+  rejectedSyncPromise,
+  resolvedSyncPromise,
+  SyncPromise,
+} from "./syncpromise.ts";
 
 export interface PromiseBuffer<T> {
   // exposes the internal array so tests can assert on the state of it.
@@ -42,7 +46,9 @@ export function makePromiseBuffer<T>(limit?: number): PromiseBuffer<T> {
    */
   function add(taskProducer: () => PromiseLike<T>): PromiseLike<T> {
     if (!isReady()) {
-      return rejectedSyncPromise(new SentryError('Not adding Promise due to buffer limit reached.'));
+      return rejectedSyncPromise(
+        new SentryError("Not adding Promise due to buffer limit reached."),
+      );
     }
 
     // start the task and add its promise to the queue
@@ -58,8 +64,7 @@ export function makePromiseBuffer<T>(limit?: number): PromiseBuffer<T> {
       .then(null, () =>
         remove(task).then(null, () => {
           // We have to add another catch here because `remove()` starts a new promise chain.
-        }),
-      );
+        }));
     return task;
   }
 
@@ -88,7 +93,7 @@ export function makePromiseBuffer<T>(limit?: number): PromiseBuffer<T> {
       }, timeout);
 
       // if all promises resolve in time, cancel the timer and resolve to `true`
-      buffer.forEach(item => {
+      buffer.forEach((item) => {
         void resolvedSyncPromise(item).then(() => {
           // eslint-disable-next-line no-plusplus
           if (!--counter) {

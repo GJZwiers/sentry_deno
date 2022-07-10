@@ -1,6 +1,6 @@
-export { GlobalHandlers } from './globalhandlers';
-export { TryCatch } from './trycatch';
-export { Breadcrumbs } from './breadcrumbs';
-export { LinkedErrors } from './linkederrors';
-export { HttpContext } from './httpcontext';
-export { Dedupe } from './dedupe';
+export { GlobalHandlers } from "./globalhandlers.ts";
+export { TryCatch } from "./trycatch.ts";
+export { Breadcrumbs } from "./breadcrumbs.ts";
+export { LinkedErrors } from "./linkederrors.ts";
+export { HttpContext } from "./httpcontext.ts";
+export { Dedupe } from "./dedupe.ts";

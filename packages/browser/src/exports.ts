@@ -1,11 +1,12 @@
 export type {
   Breadcrumb,
   BreadcrumbHint,
-  Request,
-  SdkInfo,
   Event,
   EventHint,
   Exception,
+  Request,
+  SdkInfo,
+  Session,
   // eslint-disable-next-line deprecation/deprecation
   Severity,
   SeverityLevel,
@@ -13,26 +14,26 @@ export type {
   Stacktrace,
   Thread,
   User,
-  Session,
-} from '@sentry/types';
+} from "../../types/src/index.ts";
 
-export type { BrowserOptions } from './client';
-export type { ReportDialogOptions } from './helpers';
+export type { BrowserOptions } from "./client.ts";
+export type { ReportDialogOptions } from "./helpers.ts";
 
 export {
-  addGlobalEventProcessor,
   addBreadcrumb,
-  captureException,
+  addGlobalEventProcessor,
   captureEvent,
+  captureException,
   captureMessage,
   configureScope,
   createTransport,
-  getHubFromCarrier,
+  FunctionToString,
   getCurrentHub,
+  getHubFromCarrier,
   Hub,
+  InboundFilters,
   makeMain,
   Scope,
-  startTransaction,
   SDK_VERSION,
   setContext,
   setExtra,
@@ -40,21 +41,37 @@ export {
   setTag,
   setTags,
   setUser,
+  startTransaction,
   withScope,
-  FunctionToString,
-  InboundFilters,
-} from '@sentry/core';
+} from "../../core/src/index.ts";
 
-export { BrowserClient } from './client';
-export { makeFetchTransport, makeXHRTransport } from './transports';
+export { BrowserClient } from "./client.ts";
+export { makeFetchTransport, makeXHRTransport } from "./transports/index.ts";
 export {
-  defaultStackParser,
-  defaultStackLineParsers,
   chromeStackLineParser,
+  defaultStackLineParsers,
+  defaultStackParser,
   geckoStackLineParser,
   opera10StackLineParser,
   opera11StackLineParser,
   winjsStackLineParser,
-} from './stack-parsers';
-export { defaultIntegrations, forceLoad, init, lastEventId, onLoad, showReportDialog, flush, close, wrap } from './sdk';
-export { GlobalHandlers, TryCatch, Breadcrumbs, LinkedErrors, HttpContext, Dedupe } from './integrations';
+} from "./stack-parsers.ts";
+export {
+  close,
+  defaultIntegrations,
+  flush,
+  forceLoad,
+  init,
+  lastEventId,
+  onLoad,
+  showReportDialog,
+  wrap,
+} from "./sdk.ts";
+export {
+  Breadcrumbs,
+  Dedupe,
+  GlobalHandlers,
+  HttpContext,
+  LinkedErrors,
+  TryCatch,
+} from "./integrations/index.ts";

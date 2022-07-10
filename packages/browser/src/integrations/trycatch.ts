@@ -1,41 +1,50 @@
-import { Integration, WrappedFunction } from '@sentry/types';
-import { fill, getFunctionName, getGlobalObject, getOriginalFunction } from '@sentry/utils';
+import { Integration, WrappedFunction } from "../../../types/src/index.ts";
+import {
+  fill,
+  getFunctionName,
+  getGlobalObject,
+  getOriginalFunction,
+} from "../../../utils/src/index.ts";
 
-import { wrap } from '../helpers';
+import { wrap } from "../helpers.ts";
 
 const DEFAULT_EVENT_TARGET = [
-  'EventTarget',
-  'Window',
-  'Node',
-  'ApplicationCache',
-  'AudioTrackList',
-  'ChannelMergerNode',
-  'CryptoOperation',
-  'EventSource',
-  'FileReader',
-  'HTMLUnknownElement',
-  'IDBDatabase',
-  'IDBRequest',
-  'IDBTransaction',
-  'KeyOperation',
-  'MediaController',
-  'MessagePort',
-  'ModalWindow',
-  'Notification',
-  'SVGElementInstance',
-  'Screen',
-  'TextTrack',
-  'TextTrackCue',
-  'TextTrackList',
-  'WebSocket',
-  'WebSocketWorker',
-  'Worker',
-  'XMLHttpRequest',
-  'XMLHttpRequestEventTarget',
-  'XMLHttpRequestUpload',
+  "EventTarget",
+  "Window",
+  "Node",
+  "ApplicationCache",
+  "AudioTrackList",
+  "ChannelMergerNode",
+  "CryptoOperation",
+  "EventSource",
+  "FileReader",
+  "HTMLUnknownElement",
+  "IDBDatabase",
+  "IDBRequest",
+  "IDBTransaction",
+  "KeyOperation",
+  "MediaController",
+  "MessagePort",
+  "ModalWindow",
+  "Notification",
+  "SVGElementInstance",
+  "Screen",
+  "TextTrack",
+  "TextTrackCue",
+  "TextTrackList",
+  "WebSocket",
+  "WebSocketWorker",
+  "Worker",
+  "XMLHttpRequest",
+  "XMLHttpRequestEventTarget",
+  "XMLHttpRequestUpload",
 ];
 
-type XMLHttpRequestProp = 'onload' | 'onerror' | 'onprogress' | 'onreadystatechange';
+type XMLHttpRequestProp =
+  | "onload"
+  | "onerror"
+  | "onprogress"
+  | "onreadystatechange";
 
 /** JSDoc */
 interface TryCatchOptions {
@@ -51,7 +60,7 @@ export class TryCatch implements Integration {
   /**
    * @inheritDoc
    */
-  public static id: string = 'TryCatch';
+  public static id: string = "TryCatch";
 
   /**
    * @inheritDoc
@@ -83,24 +92,26 @@ export class TryCatch implements Integration {
     const global = getGlobalObject();
 
     if (this._options.setTimeout) {
-      fill(global, 'setTimeout', _wrapTimeFunction);
+      fill(global, "setTimeout", _wrapTimeFunction);
     }
 
     if (this._options.setInterval) {
-      fill(global, 'setInterval', _wrapTimeFunction);
+      fill(global, "setInterval", _wrapTimeFunction);
     }
 
     if (this._options.requestAnimationFrame) {
-      fill(global, 'requestAnimationFrame', _wrapRAF);
+      fill(global, "requestAnimationFrame", _wrapRAF);
     }
 
-    if (this._options.XMLHttpRequest && 'XMLHttpRequest' in global) {
-      fill(XMLHttpRequest.prototype, 'send', _wrapXHR);
+    if (this._options.XMLHttpRequest && "XMLHttpRequest" in global) {
+      fill(XMLHttpRequest.prototype, "send", _wrapXHR);
     }
 
     const eventTargetOption = this._options.eventTarget;
     if (eventTargetOption) {
-      const eventTarget = Array.isArray(eventTargetOption) ? eventTargetOption : DEFAULT_EVENT_TARGET;
+      const eventTarget = Array.isArray(eventTargetOption)
+        ? eventTargetOption
+        : DEFAULT_EVENT_TARGET;
       eventTarget.forEach(_wrapEventTarget);
     }
   }
@@ -115,7 +126,7 @@ function _wrapTimeFunction(original: () => void): () => number {
       mechanism: {
         data: { function: getFunctionName(original) },
         handled: true,
-        type: 'instrument',
+        type: "instrument",
       },
     });
     return original.apply(this, args);
@@ -132,11 +143,11 @@ function _wrapRAF(original: any): (callback: () => void) => any {
       wrap(callback, {
         mechanism: {
           data: {
-            function: 'requestAnimationFrame',
+            function: "requestAnimationFrame",
             handler: getFunctionName(original),
           },
           handled: true,
-          type: 'instrument',
+          type: "instrument",
         },
       }),
     ]);
@@ -149,10 +160,15 @@ function _wrapXHR(originalSend: () => void): () => void {
   return function (this: XMLHttpRequest, ...args: any[]): void {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const xhr = this;
-    const xmlHttpRequestProps: XMLHttpRequestProp[] = ['onload', 'onerror', 'onprogress', 'onreadystatechange'];
+    const xmlHttpRequestProps: XMLHttpRequestProp[] = [
+      "onload",
+      "onerror",
+      "onprogress",
+      "onreadystatechange",
+    ];
 
-    xmlHttpRequestProps.forEach(prop => {
-      if (prop in xhr && typeof xhr[prop] === 'function') {
+    xmlHttpRequestProps.forEach((prop) => {
+      if (prop in xhr && typeof xhr[prop] === "function") {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         fill(xhr, prop, function (original: WrappedFunction): () => any {
           const wrapOptions = {
@@ -162,14 +178,16 @@ function _wrapXHR(originalSend: () => void): () => void {
                 handler: getFunctionName(original),
               },
               handled: true,
-              type: 'instrument',
+              type: "instrument",
             },
           };
 
           // If Instrument integration has been called before TryCatch, get the name of original function
           const originalFunction = getOriginalFunction(original);
           if (originalFunction) {
-            wrapOptions.mechanism.data.handler = getFunctionName(originalFunction);
+            wrapOptions.mechanism.data.handler = getFunctionName(
+              originalFunction,
+            );
           }
 
           // Otherwise wrap directly
@@ -190,11 +208,13 @@ function _wrapEventTarget(target: string): void {
   const proto = global[target] && global[target].prototype;
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, no-prototype-builtins
-  if (!proto || !proto.hasOwnProperty || !proto.hasOwnProperty('addEventListener')) {
+  if (
+    !proto || !proto.hasOwnProperty || !proto.hasOwnProperty("addEventListener")
+  ) {
     return;
   }
 
-  fill(proto, 'addEventListener', function (original: () => void): (
+  fill(proto, "addEventListener", function (original: () => void): (
     eventName: string,
     fn: EventListenerObject,
     options?: boolean | AddEventListenerOptions,
@@ -205,9 +225,14 @@ function _wrapEventTarget(target: string): void {
       eventName: string,
       fn: EventListenerObject,
       options?: boolean | AddEventListenerOptions,
-    ): (eventName: string, fn: EventListenerObject, capture?: boolean, secure?: boolean) => void {
+    ): (
+      eventName: string,
+      fn: EventListenerObject,
+      capture?: boolean,
+      secure?: boolean,
+    ) => void {
       try {
-        if (typeof fn.handleEvent === 'function') {
+        if (typeof fn.handleEvent === "function") {
           // ESlint disable explanation:
           //  First, it is generally safe to call `wrap` with an unbound function. Furthermore, using `.bind()` would
           //  introduce a bug here, because bind returns a new function that doesn't have our
@@ -217,12 +242,12 @@ function _wrapEventTarget(target: string): void {
           fn.handleEvent = wrap(fn.handleEvent, {
             mechanism: {
               data: {
-                function: 'handleEvent',
+                function: "handleEvent",
                 handler: getFunctionName(fn),
                 target,
               },
               handled: true,
-              type: 'instrument',
+              type: "instrument",
             },
           });
         }
@@ -236,12 +261,12 @@ function _wrapEventTarget(target: string): void {
         wrap(fn as any as WrappedFunction, {
           mechanism: {
             data: {
-              function: 'addEventListener',
+              function: "addEventListener",
               handler: getFunctionName(fn),
               target,
             },
             handled: true,
-            type: 'instrument',
+            type: "instrument",
           },
         }),
         options,
@@ -251,11 +276,16 @@ function _wrapEventTarget(target: string): void {
 
   fill(
     proto,
-    'removeEventListener',
+    "removeEventListener",
     function (
       originalRemoveEventListener: () => void,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ): (this: any, eventName: string, fn: EventListenerObject, options?: boolean | EventListenerOptions) => () => void {
+    ): (
+      this: any,
+      eventName: string,
+      fn: EventListenerObject,
+      options?: boolean | EventListenerOptions,
+    ) => () => void {
       return function (
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this: any,
@@ -282,14 +312,25 @@ function _wrapEventTarget(target: string): void {
          */
         const wrappedEventHandler = fn as unknown as WrappedFunction;
         try {
-          const originalEventHandler = wrappedEventHandler && wrappedEventHandler.__sentry_wrapped__;
+          const originalEventHandler = wrappedEventHandler &&
+            wrappedEventHandler.__sentry_wrapped__;
           if (originalEventHandler) {
-            originalRemoveEventListener.call(this, eventName, originalEventHandler, options);
+            originalRemoveEventListener.call(
+              this,
+              eventName,
+              originalEventHandler,
+              options,
+            );
           }
         } catch (e) {
           // ignore, accessing __sentry_wrapped__ will throw in some Selenium environments
         }
-        return originalRemoveEventListener.call(this, eventName, wrappedEventHandler, options);
+        return originalRemoveEventListener.call(
+          this,
+          eventName,
+          wrappedEventHandler,
+          options,
+        );
       };
     },
   );

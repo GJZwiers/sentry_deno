@@ -1,17 +1,20 @@
-import { Attachment } from './attachment';
-import { Breadcrumb } from './breadcrumb';
-import { Context, Contexts } from './context';
-import { EventProcessor } from './eventprocessor';
-import { Extra, Extras } from './extra';
-import { Primitive } from './misc';
-import { RequestSession, Session } from './session';
-import { Severity, SeverityLevel } from './severity';
-import { Span } from './span';
-import { Transaction } from './transaction';
-import { User } from './user';
+import { Attachment } from "./attachment.ts";
+import { Breadcrumb } from "./breadcrumb.ts";
+import { Context, Contexts } from "./context.ts";
+import { EventProcessor } from "./eventprocessor.ts";
+import { Extra, Extras } from "./extra.ts";
+import { Primitive } from "./misc.ts";
+import { RequestSession, Session } from "./session.ts";
+import { Severity, SeverityLevel } from "./severity.ts";
+import { Span } from "./span.ts";
+import { Transaction } from "./transaction.ts";
+import { User } from "./user.ts";
 
 /** JSDocs */
-export type CaptureContext = Scope | Partial<ScopeContext> | ((scope: Scope) => Scope);
+export type CaptureContext =
+  | Scope
+  | Partial<ScopeContext>
+  | ((scope: Scope) => Scope);
 
 /** JSDocs */
 export interface ScopeContext {

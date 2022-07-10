@@ -1,9 +1,9 @@
-export * from './exports';
+export * from "./exports.ts";
 
-import { Integrations as CoreIntegrations } from '@sentry/core';
-import { getGlobalObject } from '@sentry/utils';
+import { Integrations as CoreIntegrations } from "../../core/src/index.ts";
+import { getGlobalObject } from "../../utils/src/index.ts";
 
-import * as BrowserIntegrations from './integrations';
+import * as BrowserIntegrations from "./integrations/index.ts";
 
 let windowIntegrations = {};
 

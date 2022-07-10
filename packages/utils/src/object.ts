@@ -1,10 +1,17 @@
 /* eslint-disable max-lines */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { WrappedFunction } from '@sentry/types';
+import { WrappedFunction } from "../../types/src/index.ts";
 
-import { htmlTreeAsString } from './browser';
-import { isElement, isError, isEvent, isInstanceOf, isPlainObject, isPrimitive } from './is';
-import { truncate } from './string';
+import { htmlTreeAsString } from "./browser.ts";
+import {
+  isElement,
+  isError,
+  isEvent,
+  isInstanceOf,
+  isPlainObject,
+  isPrimitive,
+} from "./is.ts";
+import { truncate } from "./string.ts";
 
 /**
  * Replace a method in an object with a wrapped version of itself.
@@ -17,7 +24,11 @@ import { truncate } from './string';
  * args>)` or `origMethod.apply(this, [<other args>])` (rather than being called directly), again to preserve `this`.
  * @returns void
  */
-export function fill(source: { [key: string]: any }, name: string, replacementFactory: (...args: any[]) => any): void {
+export function fill(
+  source: { [key: string]: any },
+  name: string,
+  replacementFactory: (...args: any[]) => any,
+): void {
   if (!(name in source)) {
     return;
   }
@@ -27,7 +38,7 @@ export function fill(source: { [key: string]: any }, name: string, replacementFa
 
   // Make sure it's a function first, as we need to attach an empty prototype for `defineProperties` to work
   // otherwise it'll throw "TypeError: Object.defineProperties called on non-object"
-  if (typeof wrapped === 'function') {
+  if (typeof wrapped === "function") {
     try {
       markFunctionWrapped(wrapped, original);
     } catch (_Oo) {
@@ -46,7 +57,11 @@ export function fill(source: { [key: string]: any }, name: string, replacementFa
  * @param name The name of the property to be set
  * @param value The value to which to set the property
  */
-export function addNonEnumerableProperty(obj: { [key: string]: unknown }, name: string, value: unknown): void {
+export function addNonEnumerableProperty(
+  obj: { [key: string]: unknown },
+  name: string,
+  value: unknown,
+): void {
   Object.defineProperty(obj, name, {
     // enumerable: false, // the default, so we can save on bundle size by not explicitly setting it
     value: value,
@@ -62,10 +77,13 @@ export function addNonEnumerableProperty(obj: { [key: string]: unknown }, name: 
  * @param wrapped the wrapper function
  * @param original the original function that gets wrapped
  */
-export function markFunctionWrapped(wrapped: WrappedFunction, original: WrappedFunction): void {
+export function markFunctionWrapped(
+  wrapped: WrappedFunction,
+  original: WrappedFunction,
+): void {
   const proto = original.prototype || {};
   wrapped.prototype = original.prototype = proto;
-  addNonEnumerableProperty(wrapped, '__sentry_original__', original);
+  addNonEnumerableProperty(wrapped, "__sentry_original__", original);
 }
 
 /**
@@ -75,7 +93,9 @@ export function markFunctionWrapped(wrapped: WrappedFunction, original: WrappedF
  * @param func the function to unwrap
  * @returns the unwrapped version of the function if available.
  */
-export function getOriginalFunction(func: WrappedFunction): WrappedFunction | undefined {
+export function getOriginalFunction(
+  func: WrappedFunction,
+): WrappedFunction | undefined {
   return func.__sentry_original__;
 }
 
@@ -87,8 +107,10 @@ export function getOriginalFunction(func: WrappedFunction): WrappedFunction | un
  */
 export function urlEncode(object: { [key: string]: any }): string {
   return Object.keys(object)
-    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(object[key])}`)
-    .join('&');
+    .map((key) =>
+      `${encodeURIComponent(key)}=${encodeURIComponent(object[key])}`
+    )
+    .join("&");
 }
 
 /**
@@ -103,18 +125,18 @@ export function convertToPlainObject<V extends unknown>(
   value: V,
 ):
   | {
-      [ownProps: string]: unknown;
-      type: string;
-      target: string;
-      currentTarget: string;
-      detail?: unknown;
-    }
+    [ownProps: string]: unknown;
+    type: string;
+    target: string;
+    currentTarget: string;
+    detail?: unknown;
+  }
   | {
-      [ownProps: string]: unknown;
-      message: string;
-      name: string;
-      stack?: string;
-    }
+    [ownProps: string]: unknown;
+    message: string;
+    name: string;
+    stack?: string;
+  }
   | V {
   if (isError(value)) {
     return {
@@ -137,7 +159,9 @@ export function convertToPlainObject<V extends unknown>(
       ...getOwnProperties(value),
     };
 
-    if (typeof CustomEvent !== 'undefined' && isInstanceOf(value, CustomEvent)) {
+    if (
+      typeof CustomEvent !== "undefined" && isInstanceOf(value, CustomEvent)
+    ) {
       newObj.detail = value.detail;
     }
 
@@ -150,15 +174,17 @@ export function convertToPlainObject<V extends unknown>(
 /** Creates a string representation of the target of an `Event` object */
 function serializeEventTarget(target: unknown): string {
   try {
-    return isElement(target) ? htmlTreeAsString(target) : Object.prototype.toString.call(target);
+    return isElement(target)
+      ? htmlTreeAsString(target)
+      : Object.prototype.toString.call(target);
   } catch (_oO) {
-    return '<unknown>';
+    return "<unknown>";
   }
 }
 
 /** Filters out all but an object's own properties */
 function getOwnProperties(obj: unknown): { [key: string]: unknown } {
-  if (typeof obj === 'object' && obj !== null) {
+  if (typeof obj === "object" && obj !== null) {
     const extractedProps: { [key: string]: unknown } = {};
     for (const property in obj) {
       if (Object.prototype.hasOwnProperty.call(obj, property)) {
@@ -176,12 +202,15 @@ function getOwnProperties(obj: unknown): { [key: string]: unknown } {
  * and truncated list that will be used inside the event message.
  * eg. `Non-error exception captured with keys: foo, bar, baz`
  */
-export function extractExceptionKeysForMessage(exception: Record<string, unknown>, maxLength: number = 40): string {
+export function extractExceptionKeysForMessage(
+  exception: Record<string, unknown>,
+  maxLength: number = 40,
+): string {
   const keys = Object.keys(convertToPlainObject(exception));
   keys.sort();
 
   if (!keys.length) {
-    return '[object has no keys]';
+    return "[object has no keys]";
   }
 
   if (keys[0].length >= maxLength) {
@@ -189,7 +218,7 @@ export function extractExceptionKeysForMessage(exception: Record<string, unknown
   }
 
   for (let includedKeys = keys.length; includedKeys > 0; includedKeys--) {
-    const serialized = keys.slice(0, includedKeys).join(', ');
+    const serialized = keys.slice(0, includedKeys).join(", ");
     if (serialized.length > maxLength) {
       continue;
     }
@@ -199,7 +228,7 @@ export function extractExceptionKeysForMessage(exception: Record<string, unknown
     return truncate(serialized, maxLength);
   }
 
-  return '';
+  return "";
 }
 
 /**
@@ -218,7 +247,10 @@ export function dropUndefinedKeys<T>(inputValue: T): T {
   return _dropUndefinedKeys(inputValue, memoizationMap);
 }
 
-function _dropUndefinedKeys<T>(inputValue: T, memoizationMap: Map<unknown, unknown>): T {
+function _dropUndefinedKeys<T>(
+  inputValue: T,
+  memoizationMap: Map<unknown, unknown>,
+): T {
   if (isPlainObject(inputValue)) {
     // If this node has already been visited due to a circular reference, return the object it was mapped to in the new object
     const memoVal = memoizationMap.get(inputValue);
@@ -231,7 +263,7 @@ function _dropUndefinedKeys<T>(inputValue: T, memoizationMap: Map<unknown, unkno
     memoizationMap.set(inputValue, returnValue);
 
     for (const key of Object.keys(inputValue)) {
-      if (typeof inputValue[key] !== 'undefined') {
+      if (typeof inputValue[key] !== "undefined") {
         returnValue[key] = _dropUndefinedKeys(inputValue[key], memoizationMap);
       }
     }
@@ -279,17 +311,20 @@ export function objectify(wat: unknown): typeof Object {
     // Though symbols and bigints do have wrapper classes (`Symbol` and `BigInt`, respectively), for whatever reason
     // those classes don't have constructors which can be used with the `new` keyword. We therefore need to cast each as
     // an object in order to wrap it.
-    case typeof wat === 'symbol' || typeof wat === 'bigint':
+
+    case typeof wat === "symbol" || typeof wat === "bigint":
       objectified = Object(wat);
       break;
 
     // this will catch the remaining primitives: `String`, `Number`, and `Boolean`
+
     case isPrimitive(wat):
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       objectified = new (wat as any).constructor(wat);
       break;
 
     // by process of elimination, at this point we know that `wat` must already be an object
+
     default:
       objectified = wat;
       break;

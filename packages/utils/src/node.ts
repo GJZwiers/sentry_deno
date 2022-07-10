@@ -3,7 +3,7 @@
  * you must either a) use `console.log` rather than the logger, or b) put your function elsewhere.
  */
 
-import { isBrowserBundle } from './env';
+import { isBrowserBundle } from "./env.ts";
 
 /**
  * Checks whether we're in the Node.js or Browser environment
@@ -15,7 +15,9 @@ export function isNodeEnv(): boolean {
   // by terser/rollup.
   return (
     !isBrowserBundle() &&
-    Object.prototype.toString.call(typeof process !== 'undefined' ? process : 0) === '[object process]'
+    Object.prototype.toString.call(
+        typeof process !== "undefined" ? process : 0,
+      ) === "[object process]"
   );
 }
 
@@ -53,7 +55,7 @@ export function loadModule<T>(moduleName: string): T | undefined {
   }
 
   try {
-    const { cwd } = dynamicRequire(module, 'process');
+    const { cwd } = dynamicRequire(module, "process");
     mod = dynamicRequire(module, `${cwd()}/node_modules/${moduleName}`) as T;
   } catch (e) {
     // no-empty

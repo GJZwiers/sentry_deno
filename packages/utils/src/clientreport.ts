@@ -1,7 +1,11 @@
-import { ClientReport, ClientReportEnvelope, ClientReportItem } from '@sentry/types';
+import {
+  ClientReport,
+  ClientReportEnvelope,
+  ClientReportItem,
+} from "../../types/src/index.ts";
 
-import { createEnvelope } from './envelope';
-import { dateTimestampInSeconds } from './time';
+import { createEnvelope } from "./envelope.ts";
+import { dateTimestampInSeconds } from "./time.ts";
 
 /**
  * Creates client report envelope
@@ -9,16 +13,18 @@ import { dateTimestampInSeconds } from './time';
  * @param dsn A DSN that can be set on the header. Optional.
  */
 export function createClientReportEnvelope(
-  discarded_events: ClientReport['discarded_events'],
+  discarded_events: ClientReport["discarded_events"],
   dsn?: string,
   timestamp?: number,
 ): ClientReportEnvelope {
   const clientReportItem: ClientReportItem = [
-    { type: 'client_report' },
+    { type: "client_report" },
     {
       timestamp: timestamp || dateTimestampInSeconds(),
       discarded_events,
     },
   ];
-  return createEnvelope<ClientReportEnvelope>(dsn ? { dsn } : {}, [clientReportItem]);
+  return createEnvelope<ClientReportEnvelope>(dsn ? { dsn } : {}, [
+    clientReportItem,
+  ]);
 }

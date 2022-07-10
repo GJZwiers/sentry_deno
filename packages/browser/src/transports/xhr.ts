@@ -1,8 +1,12 @@
-import { createTransport } from '@sentry/core';
-import { Transport, TransportMakeRequestResponse, TransportRequest } from '@sentry/types';
-import { SyncPromise } from '@sentry/utils';
+import { createTransport } from "../../../core/src/index.ts";
+import {
+  Transport,
+  TransportMakeRequestResponse,
+  TransportRequest,
+} from "../../../types/src/index.ts";
+import { SyncPromise } from "../../../utils/src/index.ts";
 
-import { BrowserTransportOptions } from './types';
+import { BrowserTransportOptions } from "./types.ts";
 
 /**
  * The DONE ready state for XmlHttpRequest
@@ -18,7 +22,9 @@ const XHR_READYSTATE_DONE = 4;
  * Creates a Transport that uses the XMLHttpRequest API to send events to Sentry.
  */
 export function makeXHRTransport(options: BrowserTransportOptions): Transport {
-  function makeRequest(request: TransportRequest): PromiseLike<TransportMakeRequestResponse> {
+  function makeRequest(
+    request: TransportRequest,
+  ): PromiseLike<TransportMakeRequestResponse> {
     return new SyncPromise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
 
@@ -29,14 +35,16 @@ export function makeXHRTransport(options: BrowserTransportOptions): Transport {
           resolve({
             statusCode: xhr.status,
             headers: {
-              'x-sentry-rate-limits': xhr.getResponseHeader('X-Sentry-Rate-Limits'),
-              'retry-after': xhr.getResponseHeader('Retry-After'),
+              "x-sentry-rate-limits": xhr.getResponseHeader(
+                "X-Sentry-Rate-Limits",
+              ),
+              "retry-after": xhr.getResponseHeader("Retry-After"),
             },
           });
         }
       };
 
-      xhr.open('POST', options.url);
+      xhr.open("POST", options.url);
 
       for (const header in options.headers) {
         if (Object.prototype.hasOwnProperty.call(options.headers, header)) {

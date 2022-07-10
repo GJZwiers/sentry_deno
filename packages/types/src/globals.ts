@@ -10,9 +10,9 @@
  * the Debug Build Flags section in CONTRIBUTING.md.
  */
 
-declare global {
-  const __DEBUG_BUILD__: boolean;
-}
+// declare global {
+//   const __DEBUG_BUILD__: boolean;
+// }
 
 // We need this empty export because of --isolatedModules
-export type {};
+export const __DEBUG_BUILD__ = false;

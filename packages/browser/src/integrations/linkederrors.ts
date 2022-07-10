@@ -1,11 +1,21 @@
-import { addGlobalEventProcessor, getCurrentHub } from '@sentry/core';
-import { Event, EventHint, Exception, ExtendedError, Integration, StackParser } from '@sentry/types';
-import { isInstanceOf } from '@sentry/utils';
+import {
+  addGlobalEventProcessor,
+  getCurrentHub,
+} from "../../../core/src/index.ts";
+import {
+  Event,
+  EventHint,
+  Exception,
+  ExtendedError,
+  Integration,
+  StackParser,
+} from "../../../types/src/index.ts";
+import { isInstanceOf } from "../../../utils/src/index.ts";
 
-import { BrowserClient } from '../client';
-import { exceptionFromError } from '../eventbuilder';
+import { BrowserClient } from "../client.ts";
+import { exceptionFromError } from "../eventbuilder.ts";
 
-const DEFAULT_KEY = 'cause';
+const DEFAULT_KEY = "cause";
 const DEFAULT_LIMIT = 5;
 
 interface LinkedErrorsOptions {
@@ -18,7 +28,7 @@ export class LinkedErrors implements Integration {
   /**
    * @inheritDoc
    */
-  public static id: string = 'LinkedErrors';
+  public static id: string = "LinkedErrors";
 
   /**
    * @inheritDoc
@@ -28,12 +38,12 @@ export class LinkedErrors implements Integration {
   /**
    * @inheritDoc
    */
-  private readonly _key: LinkedErrorsOptions['key'];
+  private readonly _key: LinkedErrorsOptions["key"];
 
   /**
    * @inheritDoc
    */
-  private readonly _limit: LinkedErrorsOptions['limit'];
+  private readonly _limit: LinkedErrorsOptions["limit"];
 
   /**
    * @inheritDoc
@@ -53,7 +63,15 @@ export class LinkedErrors implements Integration {
     }
     addGlobalEventProcessor((event: Event, hint?: EventHint) => {
       const self = getCurrentHub().getIntegration(LinkedErrors);
-      return self ? _handler(client.getOptions().stackParser, self._key, self._limit, event, hint) : event;
+      return self
+        ? _handler(
+          client.getOptions().stackParser,
+          self._key,
+          self._limit,
+          event,
+          hint,
+        )
+        : event;
     });
   }
 }
@@ -68,10 +86,18 @@ export function _handler(
   event: Event,
   hint?: EventHint,
 ): Event | null {
-  if (!event.exception || !event.exception.values || !hint || !isInstanceOf(hint.originalException, Error)) {
+  if (
+    !event.exception || !event.exception.values || !hint ||
+    !isInstanceOf(hint.originalException, Error)
+  ) {
     return event;
   }
-  const linkedErrors = _walkErrorTree(parser, limit, hint.originalException as ExtendedError, key);
+  const linkedErrors = _walkErrorTree(
+    parser,
+    limit,
+    hint.originalException as ExtendedError,
+    key,
+  );
   event.exception.values = [...linkedErrors, ...event.exception.values];
   return event;
 }

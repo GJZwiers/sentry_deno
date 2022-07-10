@@ -5,7 +5,8 @@ import {
   Hub,
   initAndBind,
   Integrations as CoreIntegrations,
-} from '@sentry/core';
+} from "../../core/src/index.ts";
+import { __DEBUG_BUILD__ } from "../../types/src/globals.ts";
 import {
   addInstrumentationHandler,
   getGlobalObject,
@@ -13,13 +14,24 @@ import {
   resolvedSyncPromise,
   stackParserFromStackParserOptions,
   supportsFetch,
-} from '@sentry/utils';
+} from "../../utils/src/index.ts";
 
-import { BrowserClient, BrowserClientOptions, BrowserOptions } from './client';
-import { ReportDialogOptions, wrap as internalWrap } from './helpers';
-import { Breadcrumbs, Dedupe, GlobalHandlers, HttpContext, LinkedErrors, TryCatch } from './integrations';
-import { defaultStackParser } from './stack-parsers';
-import { makeFetchTransport, makeXHRTransport } from './transports';
+import {
+  BrowserClient,
+  BrowserClientOptions,
+  BrowserOptions,
+} from "./client.ts";
+import { ReportDialogOptions, wrap as internalWrap } from "./helpers.ts";
+import {
+  Breadcrumbs,
+  Dedupe,
+  GlobalHandlers,
+  HttpContext,
+  LinkedErrors,
+  TryCatch,
+} from "./integrations/index.ts";
+import { defaultStackParser } from "./stack-parsers.ts";
+import { makeFetchTransport, makeXHRTransport } from "./transports/index.ts";
 
 export const defaultIntegrations = [
   new CoreIntegrations.InboundFilters(),
@@ -109,9 +121,12 @@ export function init(options: BrowserOptions = {}): void {
 
   const clientOptions: BrowserClientOptions = {
     ...options,
-    stackParser: stackParserFromStackParserOptions(options.stackParser || defaultStackParser),
+    stackParser: stackParserFromStackParserOptions(
+      options.stackParser || defaultStackParser,
+    ),
     integrations: getIntegrationsToSetup(options),
-    transport: options.transport || (supportsFetch() ? makeFetchTransport : makeXHRTransport),
+    transport: options.transport ||
+      (supportsFetch() ? makeFetchTransport : makeXHRTransport),
   };
 
   initAndBind(BrowserClient, clientOptions);
@@ -126,18 +141,23 @@ export function init(options: BrowserOptions = {}): void {
  *
  * @param options Everything is optional, we try to fetch all info need from the global scope.
  */
-export function showReportDialog(options: ReportDialogOptions = {}, hub: Hub = getCurrentHub()): void {
+export function showReportDialog(
+  options: ReportDialogOptions = {},
+  hub: Hub = getCurrentHub(),
+): void {
   // doesn't work without a document (React Native)
   const global = getGlobalObject<Window>();
   if (!global.document) {
-    __DEBUG_BUILD__ && logger.error('Global document not defined in showReportDialog call');
+    __DEBUG_BUILD__ &&
+      logger.error("Global document not defined in showReportDialog call");
     return;
   }
 
   const { client, scope } = hub.getStackTop();
   const dsn = options.dsn || (client && client.getDsn());
   if (!dsn) {
-    __DEBUG_BUILD__ && logger.error('DSN not configured for showReportDialog call');
+    __DEBUG_BUILD__ &&
+      logger.error("DSN not configured for showReportDialog call");
     return;
   }
 
@@ -152,7 +172,7 @@ export function showReportDialog(options: ReportDialogOptions = {}, hub: Hub = g
     options.eventId = hub.lastEventId();
   }
 
-  const script = global.document.createElement('script');
+  const script = global.document.createElement("script");
   script.async = true;
   script.src = getReportDialogEndpoint(dsn, options);
 
@@ -165,7 +185,10 @@ export function showReportDialog(options: ReportDialogOptions = {}, hub: Hub = g
   if (injectionPoint) {
     injectionPoint.appendChild(script);
   } else {
-    __DEBUG_BUILD__ && logger.error('Not injecting report dialog. No injection point found in HTML');
+    __DEBUG_BUILD__ &&
+      logger.error(
+        "Not injecting report dialog. No injection point found in HTML",
+      );
   }
 }
 
@@ -207,7 +230,7 @@ export function flush(timeout?: number): PromiseLike<boolean> {
   if (client) {
     return client.flush(timeout);
   }
-  __DEBUG_BUILD__ && logger.warn('Cannot flush events. No client defined.');
+  __DEBUG_BUILD__ && logger.warn("Cannot flush events. No client defined.");
   return resolvedSyncPromise(false);
 }
 
@@ -224,7 +247,8 @@ export function close(timeout?: number): PromiseLike<boolean> {
   if (client) {
     return client.close(timeout);
   }
-  __DEBUG_BUILD__ && logger.warn('Cannot flush events and disable SDK. No client defined.');
+  __DEBUG_BUILD__ &&
+    logger.warn("Cannot flush events and disable SDK. No client defined.");
   return resolvedSyncPromise(false);
 }
 
@@ -252,9 +276,11 @@ function startSessionTracking(): void {
   const window = getGlobalObject<Window>();
   const document = window.document;
 
-  if (typeof document === 'undefined') {
+  if (typeof document === "undefined") {
     __DEBUG_BUILD__ &&
-      logger.warn('Session tracking in non-browser environment with @sentry/browser is not supported.');
+      logger.warn(
+        "Session tracking in non-browser environment with @sentry/browser is not supported.",
+      );
     return;
   }
 
@@ -277,7 +303,7 @@ function startSessionTracking(): void {
   startSessionOnHub(hub);
 
   // We want to create a session for every navigation as well
-  addInstrumentationHandler('history', ({ from, to }) => {
+  addInstrumentationHandler("history", ({ from, to }) => {
     // Don't create an additional session for the initial route or if the location did not change
     if (!(from === undefined || from === to)) {
       startSessionOnHub(getCurrentHub());

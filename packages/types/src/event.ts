@@ -1,17 +1,17 @@
-import { Attachment } from './attachment';
-import { Breadcrumb } from './breadcrumb';
-import { Contexts } from './context';
-import { DebugMeta } from './debugMeta';
-import { Exception } from './exception';
-import { Extras } from './extra';
-import { Measurements } from './measurement';
-import { Primitive } from './misc';
-import { Request } from './request';
-import { CaptureContext } from './scope';
-import { SdkInfo } from './sdkinfo';
-import { Severity, SeverityLevel } from './severity';
-import { Span } from './span';
-import { User } from './user';
+import { Attachment } from "./attachment.ts";
+import { Breadcrumb } from "./breadcrumb.ts";
+import { Contexts } from "./context.ts";
+import { DebugMeta } from "./debugMeta.ts";
+import { Exception } from "./exception.ts";
+import { Extras } from "./extra.ts";
+import { Measurements } from "./measurement.ts";
+import { Primitive } from "./misc.ts";
+import { Request } from "./request.ts";
+import { CaptureContext } from "./scope.ts";
+import { SdkInfo } from "./sdkinfo.ts";
+import { Severity, SeverityLevel } from "./severity.ts";
+import { Span } from "./span.ts";
+import { User } from "./user.ts";
 
 /** JSDoc */
 export interface Event {
@@ -49,7 +49,7 @@ export interface Event {
 }
 
 /** JSDoc */
-export type EventType = 'transaction';
+export type EventType = "transaction";
 
 /** JSDoc */
 export interface EventHint {

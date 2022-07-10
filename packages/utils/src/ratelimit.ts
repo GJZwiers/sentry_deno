@@ -1,4 +1,4 @@
-import { TransportMakeRequestResponse } from '@sentry/types';
+import { TransportMakeRequestResponse } from "../../types/src/index.ts";
 
 // Intentionally keeping the key broad, as we don't know for sure what rate limit headers get returned from backend
 export type RateLimits = Record<string, number>;
@@ -9,9 +9,11 @@ export const DEFAULT_RETRY_AFTER = 60 * 1000; // 60 seconds
  * Extracts Retry-After value from the request header or returns default value
  * @param header string representation of 'Retry-After' header
  * @param now current unix timestamp
- *
  */
-export function parseRetryAfterHeader(header: string, now: number = Date.now()): number {
+export function parseRetryAfterHeader(
+  header: string,
+  now: number = Date.now(),
+): number {
   const headerDelay = parseInt(`${header}`, 10);
   if (!isNaN(headerDelay)) {
     return headerDelay * 1000;
@@ -35,7 +37,11 @@ export function disabledUntil(limits: RateLimits, category: string): number {
 /**
  * Checks if a category is rate limited
  */
-export function isRateLimited(limits: RateLimits, category: string, now: number = Date.now()): boolean {
+export function isRateLimited(
+  limits: RateLimits,
+  category: string,
+  now: number = Date.now(),
+): boolean {
   return disabledUntil(limits, category) > now;
 }
 
@@ -54,8 +60,8 @@ export function updateRateLimits(
 
   // "The name is case-insensitive."
   // https://developer.mozilla.org/en-US/docs/Web/API/Headers/get
-  const rateLimitHeader = headers && headers['x-sentry-rate-limits'];
-  const retryAfterHeader = headers && headers['retry-after'];
+  const rateLimitHeader = headers && headers["x-sentry-rate-limits"];
+  const retryAfterHeader = headers && headers["retry-after"];
 
   if (rateLimitHeader) {
     /**
@@ -70,14 +76,14 @@ export function updateRateLimits(
      *     <scope> is what's being limited (org, project, or key) - ignored by SDK
      *     <reason_code> is an arbitrary string like "org_quota" - ignored by SDK
      */
-    for (const limit of rateLimitHeader.trim().split(',')) {
-      const [retryAfter, categories] = limit.split(':', 2);
+    for (const limit of rateLimitHeader.trim().split(",")) {
+      const [retryAfter, categories] = limit.split(":", 2);
       const headerDelay = parseInt(retryAfter, 10);
       const delay = (!isNaN(headerDelay) ? headerDelay : 60) * 1000; // 60sec default
       if (!categories) {
         updatedRateLimits.all = now + delay;
       } else {
-        for (const category of categories.split(';')) {
+        for (const category of categories.split(";")) {
           updatedRateLimits[category] = now + delay;
         }
       }

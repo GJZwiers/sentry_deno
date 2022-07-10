@@ -1,5 +1,20 @@
-import { Contexts, Event, EventHint, EventProcessor, ExtendedError, Hub, Integration } from '@sentry/types';
-import { addNonEnumerableProperty, isError, isPlainObject, logger, normalize } from '@sentry/utils';
+import {
+  Contexts,
+  Event,
+  EventHint,
+  EventProcessor,
+  ExtendedError,
+  Hub,
+  Integration,
+} from "@sentry/types";
+import {
+  addNonEnumerableProperty,
+  isError,
+  isPlainObject,
+  logger,
+  normalize,
+} from "@sentry/utils";
+import { __DEBUG_BUILD__ } from "../../types/src/globals.ts";
 
 /** JSDoc */
 interface ExtraErrorDataOptions {
@@ -11,7 +26,7 @@ export class ExtraErrorData implements Integration {
   /**
    * @inheritDoc
    */
-  public static id: string = 'ExtraErrorData';
+  public static id: string = "ExtraErrorData";
 
   /**
    * @inheritDoc
@@ -34,7 +49,10 @@ export class ExtraErrorData implements Integration {
   /**
    * @inheritDoc
    */
-  public setupOnce(addGlobalEventProcessor: (callback: EventProcessor) => void, getCurrentHub: () => Hub): void {
+  public setupOnce(
+    addGlobalEventProcessor: (callback: EventProcessor) => void,
+    getCurrentHub: () => Hub,
+  ): void {
     addGlobalEventProcessor((event: Event, hint: EventHint) => {
       const self = getCurrentHub().getIntegration(ExtraErrorData);
       if (!self) {
@@ -51,9 +69,12 @@ export class ExtraErrorData implements Integration {
     if (!hint.originalException || !isError(hint.originalException)) {
       return event;
     }
-    const exceptionName = (hint.originalException as ExtendedError).name || hint.originalException.constructor.name;
+    const exceptionName = (hint.originalException as ExtendedError).name ||
+      hint.originalException.constructor.name;
 
-    const errorData = this._extractErrorData(hint.originalException as ExtendedError);
+    const errorData = this._extractErrorData(
+      hint.originalException as ExtendedError,
+    );
 
     if (errorData) {
       const contexts: Contexts = {
@@ -65,7 +86,11 @@ export class ExtraErrorData implements Integration {
       if (isPlainObject(normalizedErrorData)) {
         // We mark the error data as "already normalized" here, because we don't want other normalization procedures to
         // potentially truncate the data we just already normalized, with a certain depth setting.
-        addNonEnumerableProperty(normalizedErrorData, '__sentry_skip_normalization__', true);
+        addNonEnumerableProperty(
+          normalizedErrorData,
+          "__sentry_skip_normalization__",
+          true,
+        );
         contexts[exceptionName] = normalizedErrorData;
       }
 
@@ -81,19 +106,21 @@ export class ExtraErrorData implements Integration {
   /**
    * Extract extra information from the Error object
    */
-  private _extractErrorData(error: ExtendedError): Record<string, unknown> | null {
+  private _extractErrorData(
+    error: ExtendedError,
+  ): Record<string, unknown> | null {
     // We are trying to enhance already existing event, so no harm done if it won't succeed
     try {
       const nativeKeys = [
-        'name',
-        'message',
-        'stack',
-        'line',
-        'column',
-        'fileName',
-        'lineNumber',
-        'columnNumber',
-        'toJSON',
+        "name",
+        "message",
+        "stack",
+        "line",
+        "column",
+        "fileName",
+        "lineNumber",
+        "columnNumber",
+        "toJSON",
       ];
 
       const extraErrorInfo: Record<string, unknown> = {};
@@ -108,7 +135,7 @@ export class ExtraErrorData implements Integration {
       }
 
       // Check if someone attached `toJSON` method to grab even more properties (eg. axios is doing that)
-      if (typeof error.toJSON === 'function') {
+      if (typeof error.toJSON === "function") {
         const serializedError = error.toJSON() as Record<string, unknown>;
 
         for (const key of Object.keys(serializedError)) {
@@ -119,7 +146,8 @@ export class ExtraErrorData implements Integration {
 
       return extraErrorInfo;
     } catch (oO) {
-      __DEBUG_BUILD__ && logger.error('Unable to extract extra data from the Error object:', oO);
+      __DEBUG_BUILD__ &&
+        logger.error("Unable to extract extra data from the Error object:", oO);
     }
 
     return null;

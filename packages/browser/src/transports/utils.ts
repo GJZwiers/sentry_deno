@@ -1,4 +1,10 @@
-import { getGlobalObject, isNativeFetch, logger, supportsFetch } from '@sentry/utils';
+import { __DEBUG_BUILD__ } from "../../../types/src/globals.ts";
+import {
+  getGlobalObject,
+  isNativeFetch,
+  logger,
+  supportsFetch,
+} from "../../../utils/src/index.ts";
 
 const global = getGlobalObject<Window>();
 let cachedFetchImpl: FetchImpl;
@@ -58,9 +64,9 @@ export function getNativeFetchImplementation(): FetchImpl {
   const document = global.document;
   let fetchImpl = global.fetch;
   // eslint-disable-next-line deprecation/deprecation
-  if (document && typeof document.createElement === 'function') {
+  if (document && typeof document.createElement === "function") {
     try {
-      const sandbox = document.createElement('iframe');
+      const sandbox = document.createElement("iframe");
       sandbox.hidden = true;
       document.head.appendChild(sandbox);
       const contentWindow = sandbox.contentWindow;
@@ -70,7 +76,10 @@ export function getNativeFetchImplementation(): FetchImpl {
       document.head.removeChild(sandbox);
     } catch (e) {
       __DEBUG_BUILD__ &&
-        logger.warn('Could not create sandbox iframe for pure fetch check, bailing to window.fetch: ', e);
+        logger.warn(
+          "Could not create sandbox iframe for pure fetch check, bailing to window.fetch: ",
+          e,
+        );
     }
   }
 
@@ -85,8 +94,11 @@ export function getNativeFetchImplementation(): FetchImpl {
  * @param body report payload
  */
 export function sendReport(url: string, body: string | Uint8Array): void {
-  const isRealNavigator = Object.prototype.toString.call(global && global.navigator) === '[object Navigator]';
-  const hasSendBeacon = isRealNavigator && typeof global.navigator.sendBeacon === 'function';
+  const isRealNavigator =
+    Object.prototype.toString.call(global && global.navigator) ===
+      "[object Navigator]";
+  const hasSendBeacon = isRealNavigator &&
+    typeof global.navigator.sendBeacon === "function";
 
   if (hasSendBeacon) {
     // Prevent illegal invocations - https://xgwang.me/posts/you-may-not-know-beacon/#it-may-throw-error%2C-be-sure-to-catch
@@ -96,10 +108,10 @@ export function sendReport(url: string, body: string | Uint8Array): void {
     const fetch = getNativeFetchImplementation();
     fetch(url, {
       body,
-      method: 'POST',
-      credentials: 'omit',
+      method: "POST",
+      credentials: "omit",
       keepalive: true,
-    }).then(null, error => {
+    }).then(null, (error) => {
       __DEBUG_BUILD__ && logger.error(error);
     });
   }

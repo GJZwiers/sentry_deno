@@ -1,11 +1,11 @@
-import { TraceparentData } from '@sentry/types';
+import { TraceparentData } from "../../types/src/index.ts";
 
 export const TRACEPARENT_REGEXP = new RegExp(
-  '^[ \\t]*' + // whitespace
-    '([0-9a-f]{32})?' + // trace_id
-    '-?([0-9a-f]{16})?' + // span_id
-    '-?([01])?' + // sampled
-    '[ \\t]*$', // whitespace
+  "^[ \\t]*" + // whitespace
+    "([0-9a-f]{32})?" + // trace_id
+    "-?([0-9a-f]{16})?" + // span_id
+    "-?([01])?" + // sampled
+    "[ \\t]*$", // whitespace
 );
 
 /**
@@ -15,13 +15,15 @@ export const TRACEPARENT_REGEXP = new RegExp(
  *
  * @returns Object containing data from the header, or undefined if traceparent string is malformed
  */
-export function extractTraceparentData(traceparent: string): TraceparentData | undefined {
+export function extractTraceparentData(
+  traceparent: string,
+): TraceparentData | undefined {
   const matches = traceparent.match(TRACEPARENT_REGEXP);
   if (matches) {
     let parentSampled: boolean | undefined;
-    if (matches[3] === '1') {
+    if (matches[3] === "1") {
       parentSampled = true;
-    } else if (matches[3] === '0') {
+    } else if (matches[3] === "0") {
       parentSampled = false;
     }
     return {

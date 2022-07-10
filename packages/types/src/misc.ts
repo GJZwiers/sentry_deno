@@ -1,4 +1,4 @@
-import { QueryParams } from './request';
+import { QueryParams } from "./request.ts";
 
 /**
  * Data extracted from an incoming request to a node server
@@ -62,6 +62,13 @@ export interface WorkerLocation {
   toString(): string;
 }
 
-export type Primitive = number | string | boolean | bigint | symbol | null | undefined;
+export type Primitive =
+  | number
+  | string
+  | boolean
+  | bigint
+  | symbol
+  | null
+  | undefined;
 
 export type HttpHeaderValue = string | string[] | number | null;
