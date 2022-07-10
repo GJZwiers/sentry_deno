@@ -1,6 +1,6 @@
-import { addGlobalEventProcessor, getCurrentHub } from '@sentry/hub';
-import { Integration, Options } from '@sentry/types';
-import { logger } from '@sentry/utils';
+import { addGlobalEventProcessor, getCurrentHub } from "../../hub/src/index.ts";
+import { Integration, Options } from "../../types/src/index.ts";
+import { logger } from "../../utils/src/index.ts";
 
 export const installedIntegrations: string[] = [];
 
@@ -14,7 +14,9 @@ export type IntegrationIndex = {
  */
 function filterDuplicates(integrations: Integration[]): Integration[] {
   return integrations.reduce((acc, integrations) => {
-    if (acc.every(accIntegration => integrations.name !== accIntegration.name)) {
+    if (
+      acc.every((accIntegration) => integrations.name !== accIntegration.name)
+    ) {
       acc.push(integrations);
     }
     return acc;
@@ -23,7 +25,8 @@ function filterDuplicates(integrations: Integration[]): Integration[] {
 
 /** Gets integration to install */
 export function getIntegrationsToSetup(options: Options): Integration[] {
-  const defaultIntegrations = (options.defaultIntegrations && [...options.defaultIntegrations]) || [];
+  const defaultIntegrations =
+    (options.defaultIntegrations && [...options.defaultIntegrations]) || [];
   const userIntegrations = options.integrations;
 
   let integrations: Integration[] = [...filterDuplicates(defaultIntegrations)];
@@ -31,22 +34,26 @@ export function getIntegrationsToSetup(options: Options): Integration[] {
   if (Array.isArray(userIntegrations)) {
     // Filter out integrations that are also included in user options
     integrations = [
-      ...integrations.filter(integrations =>
-        userIntegrations.every(userIntegration => userIntegration.name !== integrations.name),
+      ...integrations.filter((integrations) =>
+        userIntegrations.every((userIntegration) =>
+          userIntegration.name !== integrations.name
+        )
       ),
       // And filter out duplicated user options integrations
       ...filterDuplicates(userIntegrations),
     ];
-  } else if (typeof userIntegrations === 'function') {
+  } else if (typeof userIntegrations === "function") {
     integrations = userIntegrations(integrations);
     integrations = Array.isArray(integrations) ? integrations : [integrations];
   }
 
   // Make sure that if present, `Debug` integration will always run last
-  const integrationsNames = integrations.map(i => i.name);
-  const alwaysLastToRun = 'Debug';
+  const integrationsNames = integrations.map((i) => i.name);
+  const alwaysLastToRun = "Debug";
   if (integrationsNames.indexOf(alwaysLastToRun) !== -1) {
-    integrations.push(...integrations.splice(integrationsNames.indexOf(alwaysLastToRun), 1));
+    integrations.push(
+      ...integrations.splice(integrationsNames.indexOf(alwaysLastToRun), 1),
+    );
   }
 
   return integrations;
@@ -58,16 +65,19 @@ export function getIntegrationsToSetup(options: Options): Integration[] {
  * @param integrations array of integration instances
  * @param withDefault should enable default integrations
  */
-export function setupIntegrations(integrations: Integration[]): IntegrationIndex {
+export function setupIntegrations(
+  integrations: Integration[],
+): IntegrationIndex {
   const integrationIndex: IntegrationIndex = {};
 
-  integrations.forEach(integration => {
+  integrations.forEach((integration) => {
     integrationIndex[integration.name] = integration;
 
     if (installedIntegrations.indexOf(integration.name) === -1) {
       integration.setupOnce(addGlobalEventProcessor, getCurrentHub);
       installedIntegrations.push(integration.name);
-      __DEBUG_BUILD__ && logger.log(`Integration installed: ${integration.name}`);
+      __DEBUG_BUILD__ &&
+        logger.log(`Integration installed: ${integration.name}`);
     }
   });
 

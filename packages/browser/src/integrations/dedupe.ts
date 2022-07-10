@@ -1,12 +1,19 @@
-import { Event, EventProcessor, Exception, Hub, Integration, StackFrame } from '@sentry/types';
-import { logger } from '@sentry/utils';
+import {
+  Event,
+  EventProcessor,
+  Exception,
+  Hub,
+  Integration,
+  StackFrame,
+} from "../../../types/src/index.ts";
+import { logger } from "../../../utils/src/index.ts";
 
 /** Deduplication filter */
 export class Dedupe implements Integration {
   /**
    * @inheritDoc
    */
-  public static id: string = 'Dedupe';
+  public static id: string = "Dedupe";
 
   /**
    * @inheritDoc
@@ -21,14 +28,20 @@ export class Dedupe implements Integration {
   /**
    * @inheritDoc
    */
-  public setupOnce(addGlobalEventProcessor: (callback: EventProcessor) => void, getCurrentHub: () => Hub): void {
-    const eventProcessor: EventProcessor = currentEvent => {
+  public setupOnce(
+    addGlobalEventProcessor: (callback: EventProcessor) => void,
+    getCurrentHub: () => Hub,
+  ): void {
+    const eventProcessor: EventProcessor = (currentEvent) => {
       const self = getCurrentHub().getIntegration(Dedupe);
       if (self) {
         // Juuust in case something goes wrong
         try {
           if (_shouldDropEvent(currentEvent, self._previousEvent)) {
-            __DEBUG_BUILD__ && logger.warn('Event dropped due to being a duplicate of previously captured event.');
+            __DEBUG_BUILD__ &&
+              logger.warn(
+                "Event dropped due to being a duplicate of previously captured event.",
+              );
             return null;
           }
         } catch (_oO) {
@@ -63,7 +76,10 @@ function _shouldDropEvent(currentEvent: Event, previousEvent?: Event): boolean {
 }
 
 /** JSDoc */
-function _isSameMessageEvent(currentEvent: Event, previousEvent: Event): boolean {
+function _isSameMessageEvent(
+  currentEvent: Event,
+  previousEvent: Event,
+): boolean {
   const currentMessage = currentEvent.message;
   const previousMessage = previousEvent.message;
 
@@ -73,7 +89,9 @@ function _isSameMessageEvent(currentEvent: Event, previousEvent: Event): boolean
   }
 
   // If only one event has a stacktrace, but not the other one, they are not the same
-  if ((currentMessage && !previousMessage) || (!currentMessage && previousMessage)) {
+  if (
+    (currentMessage && !previousMessage) || (!currentMessage && previousMessage)
+  ) {
     return false;
   }
 
@@ -93,7 +111,10 @@ function _isSameMessageEvent(currentEvent: Event, previousEvent: Event): boolean
 }
 
 /** JSDoc */
-function _isSameExceptionEvent(currentEvent: Event, previousEvent: Event): boolean {
+function _isSameExceptionEvent(
+  currentEvent: Event,
+  previousEvent: Event,
+): boolean {
   const previousException = _getExceptionFromEvent(previousEvent);
   const currentException = _getExceptionFromEvent(currentEvent);
 
@@ -101,7 +122,10 @@ function _isSameExceptionEvent(currentEvent: Event, previousEvent: Event): boole
     return false;
   }
 
-  if (previousException.type !== currentException.type || previousException.value !== currentException.value) {
+  if (
+    previousException.type !== currentException.type ||
+    previousException.value !== currentException.value
+  ) {
     return false;
   }
 
@@ -127,7 +151,9 @@ function _isSameStacktrace(currentEvent: Event, previousEvent: Event): boolean {
   }
 
   // If only one event has a stacktrace, but not the other one, they are not the same
-  if ((currentFrames && !previousFrames) || (!currentFrames && previousFrames)) {
+  if (
+    (currentFrames && !previousFrames) || (!currentFrames && previousFrames)
+  ) {
     return false;
   }
 
@@ -158,7 +184,10 @@ function _isSameStacktrace(currentEvent: Event, previousEvent: Event): boolean {
 }
 
 /** JSDoc */
-function _isSameFingerprint(currentEvent: Event, previousEvent: Event): boolean {
+function _isSameFingerprint(
+  currentEvent: Event,
+  previousEvent: Event,
+): boolean {
   let currentFingerprint = currentEvent.fingerprint;
   let previousFingerprint = previousEvent.fingerprint;
 
@@ -168,7 +197,10 @@ function _isSameFingerprint(currentEvent: Event, previousEvent: Event): boolean 
   }
 
   // If only one event has a fingerprint, but not the other one, they are not the same
-  if ((currentFingerprint && !previousFingerprint) || (!currentFingerprint && previousFingerprint)) {
+  if (
+    (currentFingerprint && !previousFingerprint) ||
+    (!currentFingerprint && previousFingerprint)
+  ) {
     return false;
   }
 
@@ -177,7 +209,7 @@ function _isSameFingerprint(currentEvent: Event, previousEvent: Event): boolean 
 
   // Otherwise, compare the two
   try {
-    return !!(currentFingerprint.join('') === previousFingerprint.join(''));
+    return !!(currentFingerprint.join("") === previousFingerprint.join(""));
   } catch (_oO) {
     return false;
   }

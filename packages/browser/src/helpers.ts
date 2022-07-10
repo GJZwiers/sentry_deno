@@ -1,12 +1,18 @@
-import { captureException, withScope } from '@sentry/core';
-import { DsnLike, Event as SentryEvent, Mechanism, Scope, WrappedFunction } from '@sentry/types';
+import { captureException, withScope } from "../../core/src/index.ts";
+import {
+  DsnLike,
+  Event as SentryEvent,
+  Mechanism,
+  Scope,
+  WrappedFunction,
+} from "../../types/src/index.ts";
 import {
   addExceptionMechanism,
   addExceptionTypeValue,
   addNonEnumerableProperty,
   getOriginalFunction,
   markFunctionWrapped,
-} from '@sentry/utils';
+} from "../../utils/src/index.ts";
 
 let ignoreOnError: number = 0;
 
@@ -52,7 +58,7 @@ export function wrap(
   //  original.__sentry_wrapped__ -> wrapped
   //  wrapped.__sentry_original__ -> original
 
-  if (typeof fn !== 'function') {
+  if (typeof fn !== "function") {
     return fn;
   }
 
@@ -81,7 +87,7 @@ export function wrap(
     const args = Array.prototype.slice.call(arguments);
 
     try {
-      if (before && typeof before === 'function') {
+      if (before && typeof before === "function") {
         before.apply(this, arguments);
       }
 
@@ -133,13 +139,16 @@ export function wrap(
   // for both debugging and to prevent it to being wrapped/filled twice
   markFunctionWrapped(sentryWrapped, fn);
 
-  addNonEnumerableProperty(fn, '__sentry_wrapped__', sentryWrapped);
+  addNonEnumerableProperty(fn, "__sentry_wrapped__", sentryWrapped);
 
   // Restore original function name (not all browsers allow that)
   try {
-    const descriptor = Object.getOwnPropertyDescriptor(sentryWrapped, 'name') as PropertyDescriptor;
+    const descriptor = Object.getOwnPropertyDescriptor(
+      sentryWrapped,
+      "name",
+    ) as PropertyDescriptor;
     if (descriptor.configurable) {
-      Object.defineProperty(sentryWrapped, 'name', {
+      Object.defineProperty(sentryWrapped, "name", {
         get(): string {
           return fn.name;
         },

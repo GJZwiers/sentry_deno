@@ -2,7 +2,9 @@
   "editor.formatOnType": true,
   "editor.formatOnPaste": false,
   "editor.formatOnSave": true,
-  "editor.rulers": [120],
+  "editor.rulers": [
+    120
+  ],
   "editor.tabSize": 2,
   "files.autoSave": "onWindowChange",
   "files.trimTrailingWhitespace": true,
@@ -21,4 +23,6 @@
   "yaml.schemas": {
     "https://json.schemastore.org/github-workflow.json": ".github/workflows/**.yml"
   },
+  "deno.enable": true,
+  "deno.unstable": true
 }

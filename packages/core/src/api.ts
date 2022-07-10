@@ -1,13 +1,15 @@
-import { DsnComponents, DsnLike } from '@sentry/types';
-import { dsnToString, makeDsn, urlEncode } from '@sentry/utils';
+import { DsnComponents, DsnLike } from "../../types/src/index.ts";
+import { dsnToString, makeDsn, urlEncode } from "../../utils/src/index.ts";
 
-const SENTRY_API_VERSION = '7';
+const SENTRY_API_VERSION = "7";
 
 /** Returns the prefix to construct Sentry ingestion API endpoints. */
 function getBaseApiEndpoint(dsn: DsnComponents): string {
-  const protocol = dsn.protocol ? `${dsn.protocol}:` : '';
-  const port = dsn.port ? `:${dsn.port}` : '';
-  return `${protocol}//${dsn.host}${port}${dsn.path ? `/${dsn.path}` : ''}/api/`;
+  const protocol = dsn.protocol ? `${dsn.protocol}:` : "";
+  const port = dsn.port ? `:${dsn.port}` : "";
+  return `${protocol}//${dsn.host}${port}${
+    dsn.path ? `/${dsn.path}` : ""
+  }/api/`;
 }
 
 /** Returns the ingest API endpoint for target. */
@@ -30,7 +32,10 @@ function _encodedAuth(dsn: DsnComponents): string {
  *
  * Sending auth as part of the query string and not as custom HTTP headers avoids CORS preflight requests.
  */
-export function getEnvelopeEndpointWithUrlEncodedAuth(dsn: DsnComponents, tunnel?: string): string {
+export function getEnvelopeEndpointWithUrlEncodedAuth(
+  dsn: DsnComponents,
+  tunnel?: string,
+): string {
   return tunnel ? tunnel : `${_getIngestEndpoint(dsn)}?${_encodedAuth(dsn)}`;
 }
 
@@ -48,11 +53,11 @@ export function getReportDialogEndpoint(
 
   let encodedOptions = `dsn=${dsnToString(dsn)}`;
   for (const key in dialogOptions) {
-    if (key === 'dsn') {
+    if (key === "dsn") {
       continue;
     }
 
-    if (key === 'user') {
+    if (key === "user") {
       const user = dialogOptions.user;
       if (!user) {
         continue;
@@ -64,7 +69,9 @@ export function getReportDialogEndpoint(
         encodedOptions += `&email=${encodeURIComponent(user.email)}`;
       }
     } else {
-      encodedOptions += `&${encodeURIComponent(key)}=${encodeURIComponent(dialogOptions[key] as string)}`;
+      encodedOptions += `&${encodeURIComponent(key)}=${
+        encodeURIComponent(dialogOptions[key] as string)
+      }`;
     }
   }
 

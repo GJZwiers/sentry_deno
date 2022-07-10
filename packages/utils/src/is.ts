@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { PolymorphicEvent, Primitive } from '@sentry/types';
+import { PolymorphicEvent, Primitive } from "../../types/src/index.ts";
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const objectToString = Object.prototype.toString;
@@ -15,9 +15,9 @@ const objectToString = Object.prototype.toString;
  */
 export function isError(wat: unknown): wat is Error {
   switch (objectToString.call(wat)) {
-    case '[object Error]':
-    case '[object Exception]':
-    case '[object DOMException]':
+    case "[object Error]":
+    case "[object Exception]":
+    case "[object DOMException]":
       return true;
     default:
       return isInstanceOf(wat, Error);
@@ -36,7 +36,7 @@ function isBuiltin(wat: unknown, ty: string): boolean {
  * @returns A boolean representing the result.
  */
 export function isErrorEvent(wat: unknown): boolean {
-  return isBuiltin(wat, 'ErrorEvent');
+  return isBuiltin(wat, "ErrorEvent");
 }
 
 /**
@@ -47,7 +47,7 @@ export function isErrorEvent(wat: unknown): boolean {
  * @returns A boolean representing the result.
  */
 export function isDOMError(wat: unknown): boolean {
-  return isBuiltin(wat, 'DOMError');
+  return isBuiltin(wat, "DOMError");
 }
 
 /**
@@ -58,7 +58,7 @@ export function isDOMError(wat: unknown): boolean {
  * @returns A boolean representing the result.
  */
 export function isDOMException(wat: unknown): boolean {
-  return isBuiltin(wat, 'DOMException');
+  return isBuiltin(wat, "DOMException");
 }
 
 /**
@@ -69,7 +69,7 @@ export function isDOMException(wat: unknown): boolean {
  * @returns A boolean representing the result.
  */
 export function isString(wat: unknown): wat is string {
-  return isBuiltin(wat, 'String');
+  return isBuiltin(wat, "String");
 }
 
 /**
@@ -80,7 +80,7 @@ export function isString(wat: unknown): wat is string {
  * @returns A boolean representing the result.
  */
 export function isPrimitive(wat: unknown): wat is Primitive {
-  return wat === null || (typeof wat !== 'object' && typeof wat !== 'function');
+  return wat === null || (typeof wat !== "object" && typeof wat !== "function");
 }
 
 /**
@@ -91,7 +91,7 @@ export function isPrimitive(wat: unknown): wat is Primitive {
  * @returns A boolean representing the result.
  */
 export function isPlainObject(wat: unknown): wat is Record<string, unknown> {
-  return isBuiltin(wat, 'Object');
+  return isBuiltin(wat, "Object");
 }
 
 /**
@@ -102,7 +102,7 @@ export function isPlainObject(wat: unknown): wat is Record<string, unknown> {
  * @returns A boolean representing the result.
  */
 export function isEvent(wat: unknown): wat is PolymorphicEvent {
-  return typeof Event !== 'undefined' && isInstanceOf(wat, Event);
+  return typeof Event !== "undefined" && isInstanceOf(wat, Event);
 }
 
 /**
@@ -113,7 +113,7 @@ export function isEvent(wat: unknown): wat is PolymorphicEvent {
  * @returns A boolean representing the result.
  */
 export function isElement(wat: unknown): boolean {
-  return typeof Element !== 'undefined' && isInstanceOf(wat, Element);
+  return typeof Element !== "undefined" && isInstanceOf(wat, Element);
 }
 
 /**
@@ -124,7 +124,7 @@ export function isElement(wat: unknown): boolean {
  * @returns A boolean representing the result.
  */
 export function isRegExp(wat: unknown): wat is RegExp {
-  return isBuiltin(wat, 'RegExp');
+  return isBuiltin(wat, "RegExp");
 }
 
 /**
@@ -133,7 +133,7 @@ export function isRegExp(wat: unknown): wat is RegExp {
  */
 export function isThenable(wat: any): wat is PromiseLike<any> {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  return Boolean(wat && wat.then && typeof wat.then === 'function');
+  return Boolean(wat && wat.then && typeof wat.then === "function");
 }
 
 /**
@@ -144,7 +144,8 @@ export function isThenable(wat: any): wat is PromiseLike<any> {
  * @returns A boolean representing the result.
  */
 export function isSyntheticEvent(wat: unknown): boolean {
-  return isPlainObject(wat) && 'nativeEvent' in wat && 'preventDefault' in wat && 'stopPropagation' in wat;
+  return isPlainObject(wat) && "nativeEvent" in wat &&
+    "preventDefault" in wat && "stopPropagation" in wat;
 }
 
 /**
@@ -155,7 +156,7 @@ export function isSyntheticEvent(wat: unknown): boolean {
  * @returns A boolean representing the result.
  */
 export function isNaN(wat: unknown): boolean {
-  return typeof wat === 'number' && wat !== wat;
+  return typeof wat === "number" && wat !== wat;
 }
 
 /**

@@ -5,9 +5,9 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { Integration } from '@sentry/types';
+import { Integration } from "../../types/src/index.ts";
 
-import { isNodeEnv } from './node';
+import { isNodeEnv } from "./node.ts";
 
 /** Internal */
 interface SentryGlobal {
@@ -35,11 +35,9 @@ const fallbackGlobalObject = {};
  */
 export function getGlobalObject<T>(): T & SentryGlobal {
   return (
-    isNodeEnv()
-      ? global
-      : typeof window !== 'undefined' // eslint-disable-line no-restricted-globals
+    isNodeEnv() ? global : typeof window !== "undefined" // eslint-disable-line no-restricted-globals
       ? window // eslint-disable-line no-restricted-globals
-      : typeof self !== 'undefined'
+      : typeof self !== "undefined"
       ? self
       : fallbackGlobalObject
   ) as T & SentryGlobal;
@@ -56,7 +54,11 @@ export function getGlobalObject<T>(): T & SentryGlobal {
  * @param obj (Optional) The global object on which to look for `__SENTRY__`, if not `getGlobalObject`'s return value
  * @returns the singleton
  */
-export function getGlobalSingleton<T>(name: keyof SentryGlobal['__SENTRY__'], creator: () => T, obj?: unknown): T {
+export function getGlobalSingleton<T>(
+  name: keyof SentryGlobal["__SENTRY__"],
+  creator: () => T,
+  obj?: unknown,
+): T {
   const global = (obj || getGlobalObject()) as SentryGlobal;
   const __SENTRY__ = (global.__SENTRY__ = global.__SENTRY__ || {});
   const singleton = __SENTRY__[name] || (__SENTRY__[name] = creator());

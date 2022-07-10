@@ -1,14 +1,22 @@
-import { WrappedFunction } from '@sentry/types';
+import { WrappedFunction } from "../../types/src/index.ts";
 
-import { getGlobalObject, getGlobalSingleton } from './global';
+import { getGlobalObject, getGlobalSingleton } from "./global.ts";
 
 // TODO: Implement different loggers for different environments
 const global = getGlobalObject<Window | NodeJS.Global>();
 
 /** Prefix for logging strings */
-const PREFIX = 'Sentry Logger ';
+const PREFIX = "Sentry Logger ";
 
-export const CONSOLE_LEVELS = ['debug', 'info', 'warn', 'error', 'log', 'assert', 'trace'] as const;
+export const CONSOLE_LEVELS = [
+  "debug",
+  "info",
+  "warn",
+  "error",
+  "log",
+  "assert",
+  "trace",
+] as const;
 
 type LoggerMethod = (...args: unknown[]) => void;
 type LoggerConsoleMethods = Record<typeof CONSOLE_LEVELS[number], LoggerMethod>;
@@ -28,7 +36,7 @@ interface Logger extends LoggerConsoleMethods {
 export function consoleSandbox<T>(callback: () => T): T {
   const global = getGlobalObject<Window>();
 
-  if (!('console' in global)) {
+  if (!("console" in global)) {
     return callback();
   }
 
@@ -36,12 +44,13 @@ export function consoleSandbox<T>(callback: () => T): T {
   const wrappedLevels: Partial<LoggerConsoleMethods> = {};
 
   // Restore all wrapped console methods
-  CONSOLE_LEVELS.forEach(level => {
+  CONSOLE_LEVELS.forEach((level) => {
     // TODO(v7): Remove this check as it's only needed for Node 6
-    const originalWrappedFunc =
-      originalConsole[level] && (originalConsole[level] as WrappedFunction).__sentry_original__;
+    const originalWrappedFunc = originalConsole[level] &&
+      (originalConsole[level] as WrappedFunction).__sentry_original__;
     if (level in global.console && originalWrappedFunc) {
-      wrappedLevels[level] = originalConsole[level] as LoggerConsoleMethods[typeof level];
+      wrappedLevels[level] =
+        originalConsole[level] as LoggerConsoleMethods[typeof level];
       originalConsole[level] = originalWrappedFunc as Console[typeof level];
     }
   });
@@ -50,8 +59,9 @@ export function consoleSandbox<T>(callback: () => T): T {
     return callback();
   } finally {
     // Revert restoration to wrapped state
-    Object.keys(wrappedLevels).forEach(level => {
-      originalConsole[level] = wrappedLevels[level as typeof CONSOLE_LEVELS[number]];
+    Object.keys(wrappedLevels).forEach((level) => {
+      originalConsole[level] =
+        wrappedLevels[level as typeof CONSOLE_LEVELS[number]];
     });
   }
 }
@@ -68,7 +78,7 @@ function makeLogger(): Logger {
   };
 
   if (__DEBUG_BUILD__) {
-    CONSOLE_LEVELS.forEach(name => {
+    CONSOLE_LEVELS.forEach((name) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       logger[name] = (...args: any[]) => {
         if (enabled) {
@@ -79,7 +89,7 @@ function makeLogger(): Logger {
       };
     });
   } else {
-    CONSOLE_LEVELS.forEach(name => {
+    CONSOLE_LEVELS.forEach((name) => {
       logger[name] = () => undefined;
     });
   }
@@ -90,7 +100,7 @@ function makeLogger(): Logger {
 // Ensure we only have a single logger instance, even if multiple versions of @sentry/utils are being used
 let logger: Logger;
 if (__DEBUG_BUILD__) {
-  logger = getGlobalSingleton('logger', makeLogger);
+  logger = getGlobalSingleton("logger", makeLogger);
 } else {
   logger = makeLogger();
 }

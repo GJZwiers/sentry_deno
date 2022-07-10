@@ -1,12 +1,13 @@
-import { DsnComponents, DsnLike, DsnProtocol } from '@sentry/types';
+import { DsnComponents, DsnLike, DsnProtocol } from "../../types/src/index.ts";
 
-import { SentryError } from './error';
+import { SentryError } from "./error.ts";
 
 /** Regular expression used to parse a Dsn. */
-const DSN_REGEX = /^(?:(\w+):)\/\/(?:(\w+)(?::(\w+))?@)([\w.-]+)(?::(\d+))?\/(.+)/;
+const DSN_REGEX =
+  /^(?:(\w+):)\/\/(?:(\w+)(?::(\w+))?@)([\w.-]+)(?::(\d+))?\/(.+)/;
 
 function isValidProtocol(protocol?: string): protocol is DsnProtocol {
-  return protocol === 'http' || protocol === 'https';
+  return protocol === "http" || protocol === "https";
 }
 
 /**
@@ -18,11 +19,14 @@ function isValidProtocol(protocol?: string): protocol is DsnProtocol {
  *
  * @param withPassword When set to true, the password will be included.
  */
-export function dsnToString(dsn: DsnComponents, withPassword: boolean = false): string {
+export function dsnToString(
+  dsn: DsnComponents,
+  withPassword: boolean = false,
+): string {
   const { host, path, pass, port, projectId, protocol, publicKey } = dsn;
   return (
-    `${protocol}://${publicKey}${withPassword && pass ? `:${pass}` : ''}` +
-    `@${host}${port ? `:${port}` : ''}/${path ? `${path}/` : path}${projectId}`
+    `${protocol}://${publicKey}${withPassword && pass ? `:${pass}` : ""}` +
+    `@${host}${port ? `:${port}` : ""}/${path ? `${path}/` : path}${projectId}`
   );
 }
 
@@ -39,13 +43,14 @@ function dsnFromString(str: string): DsnComponents {
     throw new SentryError(`Invalid Sentry Dsn: ${str}`);
   }
 
-  const [protocol, publicKey, pass = '', host, port = '', lastPath] = match.slice(1);
-  let path = '';
+  const [protocol, publicKey, pass = "", host, port = "", lastPath] = match
+    .slice(1);
+  let path = "";
   let projectId = lastPath;
 
-  const split = projectId.split('/');
+  const split = projectId.split("/");
   if (split.length > 1) {
-    path = split.slice(0, -1).join('/');
+    path = split.slice(0, -1).join("/");
     projectId = split.pop() as string;
   }
 
@@ -56,17 +61,25 @@ function dsnFromString(str: string): DsnComponents {
     }
   }
 
-  return dsnFromComponents({ host, pass, path, projectId, port, protocol: protocol as DsnProtocol, publicKey });
+  return dsnFromComponents({
+    host,
+    pass,
+    path,
+    projectId,
+    port,
+    protocol: protocol as DsnProtocol,
+    publicKey,
+  });
 }
 
 function dsnFromComponents(components: DsnComponents): DsnComponents {
   return {
     protocol: components.protocol,
-    publicKey: components.publicKey || '',
-    pass: components.pass || '',
+    publicKey: components.publicKey || "",
+    pass: components.pass || "",
     host: components.host,
-    port: components.port || '',
-    path: components.path || '',
+    port: components.port || "",
+    path: components.path || "",
     projectId: components.projectId,
   };
 }
@@ -78,8 +91,13 @@ function validateDsn(dsn: DsnComponents): boolean | void {
 
   const { port, projectId, protocol } = dsn;
 
-  const requiredComponents: ReadonlyArray<keyof DsnComponents> = ['protocol', 'publicKey', 'host', 'projectId'];
-  requiredComponents.forEach(component => {
+  const requiredComponents: ReadonlyArray<keyof DsnComponents> = [
+    "protocol",
+    "publicKey",
+    "host",
+    "projectId",
+  ];
+  requiredComponents.forEach((component) => {
     if (!dsn[component]) {
       throw new SentryError(`Invalid Sentry Dsn: ${component} missing`);
     }
@@ -102,7 +120,9 @@ function validateDsn(dsn: DsnComponents): boolean | void {
 
 /** The Sentry Dsn, identifying a Sentry instance and project. */
 export function makeDsn(from: DsnLike): DsnComponents {
-  const components = typeof from === 'string' ? dsnFromString(from) : dsnFromComponents(from);
+  const components = typeof from === "string"
+    ? dsnFromString(from)
+    : dsnFromComponents(from);
   validateDsn(components);
   return components;
 }
@@ -115,15 +135,17 @@ export function makeDsn(from: DsnLike): DsnComponents {
  * @param originalDsn The original Dsn of the customer.
  * @returns Dsn pointing to Lambda extension.
  */
-export function extensionRelayDSN(originalDsn: string | undefined): string | undefined {
+export function extensionRelayDSN(
+  originalDsn: string | undefined,
+): string | undefined {
   if (originalDsn === undefined) {
     return undefined;
   }
 
   const dsn = dsnFromString(originalDsn);
-  dsn.host = 'localhost';
-  dsn.port = '3000';
-  dsn.protocol = 'http';
+  dsn.host = "localhost";
+  dsn.port = "3000";
+  dsn.protocol = "http";
 
   return dsnToString(dsn);
 }

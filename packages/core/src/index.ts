@@ -1,34 +1,37 @@
-export type { ClientClass } from './sdk';
+export type { ClientClass } from "./sdk.ts";
 
 export {
   addBreadcrumb,
-  captureException,
+  addGlobalEventProcessor,
   captureEvent,
+  captureException,
   captureMessage,
   configureScope,
-  startTransaction,
+  getCurrentHub,
+  getHubFromCarrier,
+  Hub,
+  makeMain,
+  Scope,
   setContext,
   setExtra,
   setExtras,
   setTag,
   setTags,
   setUser,
+  startTransaction,
   withScope,
-  addGlobalEventProcessor,
-  getCurrentHub,
-  getHubFromCarrier,
-  Hub,
-  makeMain,
-  Scope,
-} from '@sentry/hub';
-export { getEnvelopeEndpointWithUrlEncodedAuth, getReportDialogEndpoint } from './api';
-export { BaseClient } from './baseclient';
-export { initAndBind } from './sdk';
-export { createTransport } from './transports/base';
-export { SDK_VERSION } from './version';
-export { getIntegrationsToSetup } from './integration';
-export { FunctionToString, InboundFilters } from './integrations';
+} from "../../hub/src/index.ts";
+export {
+  getEnvelopeEndpointWithUrlEncodedAuth,
+  getReportDialogEndpoint,
+} from "./api.ts";
+export { BaseClient } from "./baseclient.ts";
+export { initAndBind } from "./sdk.ts";
+export { createTransport } from "./transports/base.ts";
+export { SDK_VERSION } from "./version.ts";
+export { getIntegrationsToSetup } from "./integration.ts";
+export { FunctionToString, InboundFilters } from "./integrations/index.ts";
 
-import * as Integrations from './integrations';
+import * as Integrations from "./integrations/index.ts";
 
 export { Integrations };

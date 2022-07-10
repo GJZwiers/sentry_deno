@@ -1,26 +1,26 @@
 /* eslint-disable max-lines */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
-import { WrappedFunction } from '@sentry/types';
+import { WrappedFunction } from "../../types/src/index.ts";
 
-import { getGlobalObject } from './global';
-import { isInstanceOf, isString } from './is';
-import { CONSOLE_LEVELS, logger } from './logger';
-import { fill } from './object';
-import { getFunctionName } from './stacktrace';
-import { supportsHistory, supportsNativeFetch } from './supports';
+import { getGlobalObject } from "./global.ts";
+import { isInstanceOf, isString } from "./is.ts";
+import { CONSOLE_LEVELS, logger } from "./logger.ts";
+import { fill } from "./object.ts";
+import { getFunctionName } from "./stacktrace.ts";
+import { supportsHistory, supportsNativeFetch } from "./supports.ts";
 
 const global = getGlobalObject<Window>();
 
 export type InstrumentHandlerType =
-  | 'console'
-  | 'dom'
-  | 'fetch'
-  | 'history'
-  | 'sentry'
-  | 'xhr'
-  | 'error'
-  | 'unhandledrejection';
+  | "console"
+  | "dom"
+  | "fetch"
+  | "history"
+  | "sentry"
+  | "xhr"
+  | "error"
+  | "unhandledrejection";
 export type InstrumentHandlerCallback = (data: any) => void;
 
 /**
@@ -34,7 +34,9 @@ export type InstrumentHandlerCallback = (data: any) => void;
  *  - UnhandledRejection API
  */
 
-const handlers: { [key in InstrumentHandlerType]?: InstrumentHandlerCallback[] } = {};
+const handlers: {
+  [key in InstrumentHandlerType]?: InstrumentHandlerCallback[];
+} = {};
 const instrumented: { [key in InstrumentHandlerType]?: boolean } = {};
 
 /** Instruments given API */
@@ -46,29 +48,29 @@ function instrument(type: InstrumentHandlerType): void {
   instrumented[type] = true;
 
   switch (type) {
-    case 'console':
+    case "console":
       instrumentConsole();
       break;
-    case 'dom':
+    case "dom":
       instrumentDOM();
       break;
-    case 'xhr':
+    case "xhr":
       instrumentXHR();
       break;
-    case 'fetch':
+    case "fetch":
       instrumentFetch();
       break;
-    case 'history':
+    case "history":
       instrumentHistory();
       break;
-    case 'error':
+    case "error":
       instrumentError();
       break;
-    case 'unhandledrejection':
+    case "unhandledrejection":
       instrumentUnhandledRejection();
       break;
     default:
-      __DEBUG_BUILD__ && logger.warn('unknown instrumentation type:', type);
+      __DEBUG_BUILD__ && logger.warn("unknown instrumentation type:", type);
       return;
   }
 }
@@ -78,7 +80,10 @@ function instrument(type: InstrumentHandlerType): void {
  * Use at your own risk, this might break without changelog notice, only used internally.
  * @hidden
  */
-export function addInstrumentationHandler(type: InstrumentHandlerType, callback: InstrumentHandlerCallback): void {
+export function addInstrumentationHandler(
+  type: InstrumentHandlerType,
+  callback: InstrumentHandlerCallback,
+): void {
   handlers[type] = handlers[type] || [];
   (handlers[type] as InstrumentHandlerCallback[]).push(callback);
   instrument(type);
@@ -96,7 +101,9 @@ function triggerHandlers(type: InstrumentHandlerType, data: any): void {
     } catch (e) {
       __DEBUG_BUILD__ &&
         logger.error(
-          `Error while triggering instrumentation handler.\nType: ${type}\nName: ${getFunctionName(handler)}\nError:`,
+          `Error while triggering instrumentation handler.\nType: ${type}\nName: ${
+            getFunctionName(handler)
+          }\nError:`,
           e,
         );
     }
@@ -105,7 +112,7 @@ function triggerHandlers(type: InstrumentHandlerType, data: any): void {
 
 /** JSDoc */
 function instrumentConsole(): void {
-  if (!('console' in global)) {
+  if (!("console" in global)) {
     return;
   }
 
@@ -114,16 +121,20 @@ function instrumentConsole(): void {
       return;
     }
 
-    fill(global.console, level, function (originalConsoleMethod: () => any): Function {
-      return function (...args: any[]): void {
-        triggerHandlers('console', { args, level });
+    fill(
+      global.console,
+      level,
+      function (originalConsoleMethod: () => any): Function {
+        return function (...args: any[]): void {
+          triggerHandlers("console", { args, level });
 
-        // this fails for some browsers. :(
-        if (originalConsoleMethod) {
-          originalConsoleMethod.apply(global.console, args);
-        }
-      };
-    });
+          // this fails for some browsers. :(
+          if (originalConsoleMethod) {
+            originalConsoleMethod.apply(global.console, args);
+          }
+        };
+      },
+    );
   });
 }
 
@@ -133,7 +144,7 @@ function instrumentFetch(): void {
     return;
   }
 
-  fill(global, 'fetch', function (originalFetch: () => void): () => void {
+  fill(global, "fetch", function (originalFetch: () => void): () => void {
     return function (...args: any[]): void {
       const handlerData = {
         args,
@@ -144,14 +155,14 @@ function instrumentFetch(): void {
         startTimestamp: Date.now(),
       };
 
-      triggerHandlers('fetch', {
+      triggerHandlers("fetch", {
         ...handlerData,
       });
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       return originalFetch.apply(global, args).then(
         (response: Response) => {
-          triggerHandlers('fetch', {
+          triggerHandlers("fetch", {
             ...handlerData,
             endTimestamp: Date.now(),
             response,
@@ -159,7 +170,7 @@ function instrumentFetch(): void {
           return response;
         },
         (error: Error) => {
-          triggerHandlers('fetch', {
+          triggerHandlers("fetch", {
             ...handlerData,
             endTimestamp: Date.now(),
             error,
@@ -174,7 +185,13 @@ function instrumentFetch(): void {
   });
 }
 
-type XHRSendInput = null | Blob | BufferSource | FormData | URLSearchParams | string;
+type XHRSendInput =
+  | null
+  | Blob
+  | BufferSource
+  | FormData
+  | URLSearchParams
+  | string;
 
 /** JSDoc */
 interface SentryWrappedXMLHttpRequest extends XMLHttpRequest {
@@ -190,21 +207,24 @@ interface SentryWrappedXMLHttpRequest extends XMLHttpRequest {
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /** Extract `method` from fetch call arguments */
 function getFetchMethod(fetchArgs: any[] = []): string {
-  if ('Request' in global && isInstanceOf(fetchArgs[0], Request) && fetchArgs[0].method) {
+  if (
+    "Request" in global && isInstanceOf(fetchArgs[0], Request) &&
+    fetchArgs[0].method
+  ) {
     return String(fetchArgs[0].method).toUpperCase();
   }
   if (fetchArgs[1] && fetchArgs[1].method) {
     return String(fetchArgs[1].method).toUpperCase();
   }
-  return 'GET';
+  return "GET";
 }
 
 /** Extract `url` from fetch call arguments */
 function getFetchUrl(fetchArgs: any[] = []): string {
-  if (typeof fetchArgs[0] === 'string') {
+  if (typeof fetchArgs[0] === "string") {
     return fetchArgs[0];
   }
-  if ('Request' in global && isInstanceOf(fetchArgs[0], Request)) {
+  if ("Request" in global && isInstanceOf(fetchArgs[0], Request)) {
     return fetchArgs[0].url;
   }
   return String(fetchArgs[0]);
@@ -213,26 +233,29 @@ function getFetchUrl(fetchArgs: any[] = []): string {
 
 /** JSDoc */
 function instrumentXHR(): void {
-  if (!('XMLHttpRequest' in global)) {
+  if (!("XMLHttpRequest" in global)) {
     return;
   }
 
   const xhrproto = XMLHttpRequest.prototype;
 
-  fill(xhrproto, 'open', function (originalOpen: () => void): () => void {
+  fill(xhrproto, "open", function (originalOpen: () => void): () => void {
     return function (this: SentryWrappedXMLHttpRequest, ...args: any[]): void {
       // eslint-disable-next-line @typescript-eslint/no-this-alias
       const xhr = this;
       const url = args[1];
-      const xhrInfo: SentryWrappedXMLHttpRequest['__sentry_xhr__'] = (xhr.__sentry_xhr__ = {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        method: isString(args[0]) ? args[0].toUpperCase() : args[0],
-        url: args[1],
-      });
+      const xhrInfo: SentryWrappedXMLHttpRequest["__sentry_xhr__"] =
+        (xhr.__sentry_xhr__ = {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          method: isString(args[0]) ? args[0].toUpperCase() : args[0],
+          url: args[1],
+        });
 
       // if Sentry key appears in URL, don't capture it as a request
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (isString(url) && xhrInfo.method === 'POST' && url.match(/sentry_key/)) {
+      if (
+        isString(url) && xhrInfo.method === "POST" && url.match(/sentry_key/)
+      ) {
         xhr.__sentry_own_request__ = true;
       }
 
@@ -246,7 +269,7 @@ function instrumentXHR(): void {
             /* do nothing */
           }
 
-          triggerHandlers('xhr', {
+          triggerHandlers("xhr", {
             args,
             endTimestamp: Date.now(),
             startTimestamp: Date.now(),
@@ -255,28 +278,35 @@ function instrumentXHR(): void {
         }
       };
 
-      if ('onreadystatechange' in xhr && typeof xhr.onreadystatechange === 'function') {
-        fill(xhr, 'onreadystatechange', function (original: WrappedFunction): Function {
-          return function (...readyStateArgs: any[]): void {
-            onreadystatechangeHandler();
-            return original.apply(xhr, readyStateArgs);
-          };
-        });
+      if (
+        "onreadystatechange" in xhr &&
+        typeof xhr.onreadystatechange === "function"
+      ) {
+        fill(
+          xhr,
+          "onreadystatechange",
+          function (original: WrappedFunction): Function {
+            return function (...readyStateArgs: any[]): void {
+              onreadystatechangeHandler();
+              return original.apply(xhr, readyStateArgs);
+            };
+          },
+        );
       } else {
-        xhr.addEventListener('readystatechange', onreadystatechangeHandler);
+        xhr.addEventListener("readystatechange", onreadystatechangeHandler);
       }
 
       return originalOpen.apply(xhr, args);
     };
   });
 
-  fill(xhrproto, 'send', function (originalSend: () => void): () => void {
+  fill(xhrproto, "send", function (originalSend: () => void): () => void {
     return function (this: SentryWrappedXMLHttpRequest, ...args: any[]): void {
       if (this.__sentry_xhr__ && args[0] !== undefined) {
         this.__sentry_xhr__.body = args[0];
       }
 
-      triggerHandlers('xhr', {
+      triggerHandlers("xhr", {
         args,
         startTimestamp: Date.now(),
         xhr: this,
@@ -296,12 +326,15 @@ function instrumentHistory(): void {
   }
 
   const oldOnPopState = global.onpopstate;
-  global.onpopstate = function (this: WindowEventHandlers, ...args: any[]): any {
+  global.onpopstate = function (
+    this: WindowEventHandlers,
+    ...args: any[]
+  ): any {
     const to = global.location.href;
     // keep track of the current URL state, as we always receive only the updated state
     const from = lastHref;
     lastHref = to;
-    triggerHandlers('history', {
+    triggerHandlers("history", {
       from,
       to,
     });
@@ -318,7 +351,9 @@ function instrumentHistory(): void {
   };
 
   /** @hidden */
-  function historyReplacementFunction(originalHistoryFunction: () => void): () => void {
+  function historyReplacementFunction(
+    originalHistoryFunction: () => void,
+  ): () => void {
     return function (this: History, ...args: any[]): void {
       const url = args.length > 2 ? args[2] : undefined;
       if (url) {
@@ -327,7 +362,7 @@ function instrumentHistory(): void {
         const to = String(url);
         // keep track of the current URL state, as we always receive only the updated state
         lastHref = to;
-        triggerHandlers('history', {
+        triggerHandlers("history", {
           from,
           to,
         });
@@ -336,8 +371,8 @@ function instrumentHistory(): void {
     };
   }
 
-  fill(global.history, 'pushState', historyReplacementFunction);
-  fill(global.history, 'replaceState', historyReplacementFunction);
+  fill(global.history, "pushState", historyReplacementFunction);
+  fill(global.history, "replaceState", historyReplacementFunction);
 }
 
 const debounceDuration = 1000;
@@ -349,7 +384,10 @@ let lastCapturedEvent: Event | undefined;
  * @param previous previously captured event
  * @param current event to be captured
  */
-function shouldShortcircuitPreviousDebounce(previous: Event | undefined, current: Event): boolean {
+function shouldShortcircuitPreviousDebounce(
+  previous: Event | undefined,
+  current: Event,
+): boolean {
   // If there was no previous event, it should always be swapped for the new one.
   if (!previous) {
     return true;
@@ -383,7 +421,7 @@ function shouldShortcircuitPreviousDebounce(previous: Event | undefined, current
  */
 function shouldSkipDOMEvent(event: Event): boolean {
   // We are only interested in filtering `keypress` events for now.
-  if (event.type !== 'keypress') {
+  if (event.type !== "keypress") {
     return false;
   }
 
@@ -396,7 +434,10 @@ function shouldSkipDOMEvent(event: Event): boolean {
 
     // Only consider keypress events on actual input elements. This will disregard keypresses targeting body
     // e.g.tabbing through elements, hotkeys, etc.
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+    if (
+      target.tagName === "INPUT" || target.tagName === "TEXTAREA" ||
+      target.isContentEditable
+    ) {
       return false;
     }
   } catch (e) {
@@ -414,7 +455,10 @@ function shouldSkipDOMEvent(event: Event): boolean {
  * @returns wrapped breadcrumb events handler
  * @hidden
  */
-function makeDOMEventHandler(handler: Function, globalListener: boolean = false): (event: Event) => void {
+function makeDOMEventHandler(
+  handler: Function,
+  globalListener: boolean = false,
+): (event: Event) => void {
   return (event: Event): void => {
     // It's possible this handler might trigger multiple times for the same
     // event (e.g. event propagation through node ancestors).
@@ -428,7 +472,7 @@ function makeDOMEventHandler(handler: Function, globalListener: boolean = false)
       return;
     }
 
-    const name = event.type === 'keypress' ? 'input' : event.type;
+    const name = event.type === "keypress" ? "input" : event.type;
 
     // If there is no debounce timer, it means that we can safely capture the new event and store it for future comparisons.
     if (debounceTimerID === undefined) {
@@ -438,8 +482,7 @@ function makeDOMEventHandler(handler: Function, globalListener: boolean = false)
         global: globalListener,
       });
       lastCapturedEvent = event;
-    }
-    // If there is a debounce awaiting, see if the new event is different enough to treat it as a unique one.
+    } // If there is a debounce awaiting, see if the new event is different enough to treat it as a unique one.
     // If that's the case, emit the previous event and store locally the newly-captured DOM event.
     else if (shouldShortcircuitPreviousDebounce(lastCapturedEvent, event)) {
       handler({
@@ -471,7 +514,7 @@ type RemoveEventListener = (
 
 type InstrumentedElement = Element & {
   __sentry_instrumentation_handlers__?: {
-    [key in 'click' | 'keypress']?: {
+    [key in "click" | "keypress"]?: {
       handler?: Function;
       /** The number of custom listeners attached to this element */
       refCount: number;
@@ -481,72 +524,84 @@ type InstrumentedElement = Element & {
 
 /** JSDoc */
 function instrumentDOM(): void {
-  if (!('document' in global)) {
+  if (!("document" in global)) {
     return;
   }
 
   // Make it so that any click or keypress that is unhandled / bubbled up all the way to the document triggers our dom
   // handlers. (Normally we have only one, which captures a breadcrumb for each click or keypress.) Do this before
   // we instrument `addEventListener` so that we don't end up attaching this handler twice.
-  const triggerDOMHandler = triggerHandlers.bind(null, 'dom');
+  const triggerDOMHandler = triggerHandlers.bind(null, "dom");
   const globalDOMEventHandler = makeDOMEventHandler(triggerDOMHandler, true);
-  global.document.addEventListener('click', globalDOMEventHandler, false);
-  global.document.addEventListener('keypress', globalDOMEventHandler, false);
+  global.document.addEventListener("click", globalDOMEventHandler, false);
+  global.document.addEventListener("keypress", globalDOMEventHandler, false);
 
   // After hooking into click and keypress events bubbled up to `document`, we also hook into user-handled
   // clicks & keypresses, by adding an event listener of our own to any element to which they add a listener. That
   // way, whenever one of their handlers is triggered, ours will be, too. (This is needed because their handler
   // could potentially prevent the event from bubbling up to our global listeners. This way, our handler are still
   // guaranteed to fire at least once.)
-  ['EventTarget', 'Node'].forEach((target: string) => {
+  ["EventTarget", "Node"].forEach((target: string) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const proto = (global as any)[target] && (global as any)[target].prototype;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, no-prototype-builtins
-    if (!proto || !proto.hasOwnProperty || !proto.hasOwnProperty('addEventListener')) {
+    if (
+      !proto || !proto.hasOwnProperty ||
+      !proto.hasOwnProperty("addEventListener")
+    ) {
       return;
     }
 
-    fill(proto, 'addEventListener', function (originalAddEventListener: AddEventListener): AddEventListener {
-      return function (
-        this: Element,
-        type: string,
-        listener: EventListenerOrEventListenerObject,
-        options?: boolean | AddEventListenerOptions,
-      ): AddEventListener {
-        if (type === 'click' || type == 'keypress') {
-          try {
-            const el = this as InstrumentedElement;
-            const handlers = (el.__sentry_instrumentation_handlers__ = el.__sentry_instrumentation_handlers__ || {});
-            const handlerForType = (handlers[type] = handlers[type] || { refCount: 0 });
+    fill(
+      proto,
+      "addEventListener",
+      function (originalAddEventListener: AddEventListener): AddEventListener {
+        return function (
+          this: Element,
+          type: string,
+          listener: EventListenerOrEventListenerObject,
+          options?: boolean | AddEventListenerOptions,
+        ): AddEventListener {
+          if (type === "click" || type == "keypress") {
+            try {
+              const el = this as InstrumentedElement;
+              const handlers =
+                (el.__sentry_instrumentation_handlers__ =
+                  el.__sentry_instrumentation_handlers__ || {});
+              const handlerForType =
+                (handlers[type] = handlers[type] || { refCount: 0 });
 
-            if (!handlerForType.handler) {
-              const handler = makeDOMEventHandler(triggerDOMHandler);
-              handlerForType.handler = handler;
-              originalAddEventListener.call(this, type, handler, options);
+              if (!handlerForType.handler) {
+                const handler = makeDOMEventHandler(triggerDOMHandler);
+                handlerForType.handler = handler;
+                originalAddEventListener.call(this, type, handler, options);
+              }
+
+              handlerForType.refCount += 1;
+            } catch (e) {
+              // Accessing dom properties is always fragile.
+              // Also allows us to skip `addEventListenrs` calls with no proper `this` context.
             }
-
-            handlerForType.refCount += 1;
-          } catch (e) {
-            // Accessing dom properties is always fragile.
-            // Also allows us to skip `addEventListenrs` calls with no proper `this` context.
           }
-        }
 
-        return originalAddEventListener.call(this, type, listener, options);
-      };
-    });
+          return originalAddEventListener.call(this, type, listener, options);
+        };
+      },
+    );
 
     fill(
       proto,
-      'removeEventListener',
-      function (originalRemoveEventListener: RemoveEventListener): RemoveEventListener {
+      "removeEventListener",
+      function (
+        originalRemoveEventListener: RemoveEventListener,
+      ): RemoveEventListener {
         return function (
           this: Element,
           type: string,
           listener: EventListenerOrEventListenerObject,
           options?: boolean | EventListenerOptions,
         ): () => void {
-          if (type === 'click' || type == 'keypress') {
+          if (type === "click" || type == "keypress") {
             try {
               const el = this as InstrumentedElement;
               const handlers = el.__sentry_instrumentation_handlers__ || {};
@@ -556,7 +611,12 @@ function instrumentDOM(): void {
                 handlerForType.refCount -= 1;
                 // If there are no longer any custom handlers of the current type on this element, we can remove ours, too.
                 if (handlerForType.refCount <= 0) {
-                  originalRemoveEventListener.call(this, type, handlerForType.handler, options);
+                  originalRemoveEventListener.call(
+                    this,
+                    type,
+                    handlerForType.handler,
+                    options,
+                  );
                   handlerForType.handler = undefined;
                   delete handlers[type]; // eslint-disable-line @typescript-eslint/no-dynamic-delete
                 }
@@ -572,7 +632,12 @@ function instrumentDOM(): void {
             }
           }
 
-          return originalRemoveEventListener.call(this, type, listener, options);
+          return originalRemoveEventListener.call(
+            this,
+            type,
+            listener,
+            options,
+          );
         };
       },
     );
@@ -584,8 +649,14 @@ let _oldOnErrorHandler: OnErrorEventHandler = null;
 function instrumentError(): void {
   _oldOnErrorHandler = global.onerror;
 
-  global.onerror = function (msg: any, url: any, line: any, column: any, error: any): boolean {
-    triggerHandlers('error', {
+  global.onerror = function (
+    msg: any,
+    url: any,
+    line: any,
+    column: any,
+    error: any,
+  ): boolean {
+    triggerHandlers("error", {
       column,
       error,
       line,
@@ -608,7 +679,7 @@ function instrumentUnhandledRejection(): void {
   _oldOnUnhandledRejectionHandler = global.onunhandledrejection;
 
   global.onunhandledrejection = function (e: any): boolean {
-    triggerHandlers('unhandledrejection', e);
+    triggerHandlers("unhandledrejection", e);
 
     if (_oldOnUnhandledRejectionHandler) {
       // eslint-disable-next-line prefer-rest-params

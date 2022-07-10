@@ -1,9 +1,9 @@
-import { Primitive } from '@sentry/types';
+import { Primitive } from "../../types/src/index.ts";
 
-import { isNaN, isSyntheticEvent } from './is';
-import { memoBuilder, MemoFunc } from './memo';
-import { convertToPlainObject } from './object';
-import { getFunctionName } from './stacktrace';
+import { isNaN, isSyntheticEvent } from "./is.ts";
+import { memoBuilder, MemoFunc } from "./memo.ts";
+import { convertToPlainObject } from "./object.ts";
+import { getFunctionName } from "./stacktrace.ts";
 
 type Prototype = { constructor: (...args: unknown[]) => unknown };
 // This is a hack to placate TS, relying on the fact that technically, arrays are objects with integer keys. Normally we
@@ -32,10 +32,14 @@ type ObjOrArray<T> = { [key: string]: T };
  * @returns A normalized version of the object, or `"**non-serializable**"` if any errors are thrown during normalization.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function normalize(input: unknown, depth: number = +Infinity, maxProperties: number = +Infinity): any {
+export function normalize(
+  input: unknown,
+  depth: number = +Infinity,
+  maxProperties: number = +Infinity,
+): any {
   try {
     // since we're at the outermost level, we don't provide a key
-    return visit('', input, depth, maxProperties);
+    return visit("", input, depth, maxProperties);
   } catch (err) {
     return { ERROR: `**non-serializable** (${err})` };
   }
@@ -78,7 +82,10 @@ function visit(
   const [memoize, unmemoize] = memo;
 
   // Get the simple cases out of the way first
-  if (value === null || (['number', 'boolean', 'string'].includes(typeof value) && !isNaN(value))) {
+  if (
+    value === null ||
+    (["number", "boolean", "string"].includes(typeof value) && !isNaN(value))
+  ) {
     return value as Primitive;
   }
 
@@ -86,7 +93,7 @@ function visit(
 
   // Anything we could potentially dig into more (objects or arrays) will have come back as `"[object XXXX]"`.
   // Everything else will have already been serialized, so if we don't see that pattern, we're done.
-  if (!stringified.startsWith('[object ')) {
+  if (!stringified.startsWith("[object ")) {
     return stringified;
   }
 
@@ -95,28 +102,28 @@ function visit(
   // Do not normalize objects that we know have already been normalized. As a general rule, the
   // "__sentry_skip_normalization__" property should only be used sparingly and only should only be set on objects that
   // have already been normalized.
-  if ((value as ObjOrArray<unknown>)['__sentry_skip_normalization__']) {
+  if ((value as ObjOrArray<unknown>)["__sentry_skip_normalization__"]) {
     return value as ObjOrArray<unknown>;
   }
 
   // We're also done if we've reached the max depth
   if (depth === 0) {
     // At this point we know `serialized` is a string of the form `"[object XXXX]"`. Clean it up so it's just `"[XXXX]"`.
-    return stringified.replace('object ', '');
+    return stringified.replace("object ", "");
   }
 
   // If we've already visited this branch, bail out, as it's circular reference. If not, note that we're seeing it now.
   if (memoize(value)) {
-    return '[Circular ~]';
+    return "[Circular ~]";
   }
 
   // If the value has a `toJSON` method, we call it to extract more information
   const valueWithToJSON = value as unknown & { toJSON?: () => unknown };
-  if (valueWithToJSON && typeof valueWithToJSON.toJSON === 'function') {
+  if (valueWithToJSON && typeof valueWithToJSON.toJSON === "function") {
     try {
       const jsonValue = valueWithToJSON.toJSON();
       // We need to normalize the return value of `.toJSON()` in case it has circular references
-      return visit('', jsonValue, depth - 1, maxProperties, memo);
+      return visit("", jsonValue, depth - 1, maxProperties, memo);
     } catch (err) {
       // pass (The built-in `toJSON` failed, but we can still try to do it ourselves)
     }
@@ -139,13 +146,19 @@ function visit(
     }
 
     if (numAdded >= maxProperties) {
-      normalized[visitKey] = '[MaxProperties ~]';
+      normalized[visitKey] = "[MaxProperties ~]";
       break;
     }
 
     // Recursively visit all the child nodes
     const visitValue = visitable[visitKey];
-    normalized[visitKey] = visit(visitKey, visitValue, depth - 1, maxProperties, memo);
+    normalized[visitKey] = visit(
+      visitKey,
+      visitValue,
+      depth - 1,
+      maxProperties,
+      memo,
+    );
 
     numAdded += 1;
   }
@@ -176,55 +189,58 @@ function stringifyValue(
   value: Exclude<unknown, string | number | boolean | null>,
 ): string {
   try {
-    if (key === 'domain' && value && typeof value === 'object' && (value as { _events: unknown })._events) {
-      return '[Domain]';
+    if (
+      key === "domain" && value && typeof value === "object" &&
+      (value as { _events: unknown })._events
+    ) {
+      return "[Domain]";
     }
 
-    if (key === 'domainEmitter') {
-      return '[DomainEmitter]';
+    if (key === "domainEmitter") {
+      return "[DomainEmitter]";
     }
 
     // It's safe to use `global`, `window`, and `document` here in this manner, as we are asserting using `typeof` first
     // which won't throw if they are not present.
 
-    if (typeof global !== 'undefined' && value === global) {
-      return '[Global]';
+    if (typeof global !== "undefined" && value === global) {
+      return "[Global]";
     }
 
     // eslint-disable-next-line no-restricted-globals
-    if (typeof window !== 'undefined' && value === window) {
-      return '[Window]';
+    if (typeof window !== "undefined" && value === window) {
+      return "[Window]";
     }
 
     // eslint-disable-next-line no-restricted-globals
-    if (typeof document !== 'undefined' && value === document) {
-      return '[Document]';
+    if (typeof document !== "undefined" && value === document) {
+      return "[Document]";
     }
 
     // React's SyntheticEvent thingy
     if (isSyntheticEvent(value)) {
-      return '[SyntheticEvent]';
+      return "[SyntheticEvent]";
     }
 
-    if (typeof value === 'number' && value !== value) {
-      return '[NaN]';
+    if (typeof value === "number" && value !== value) {
+      return "[NaN]";
     }
 
     // this catches `undefined` (but not `null`, which is a primitive and can be serialized on its own)
     if (value === void 0) {
-      return '[undefined]';
+      return "[undefined]";
     }
 
-    if (typeof value === 'function') {
+    if (typeof value === "function") {
       return `[Function: ${getFunctionName(value)}]`;
     }
 
-    if (typeof value === 'symbol') {
+    if (typeof value === "symbol") {
       return `[${String(value)}]`;
     }
 
     // stringified BigInts are indistinguishable from regular numbers, so we need to label them to avoid confusion
-    if (typeof value === 'bigint') {
+    if (typeof value === "bigint") {
       return `[BigInt: ${String(value)}]`;
     }
 
@@ -232,7 +248,9 @@ function stringifyValue(
     // them to strings means that instances of classes which haven't defined their `toStringTag` will just come out as
     // `"[object Object]"`. If we instead look at the constructor's name (which is the same as the name of the class),
     // we can make sure that only plain objects come out that way.
-    return `[object ${(Object.getPrototypeOf(value) as Prototype).constructor.name}]`;
+    return `[object ${
+      (Object.getPrototypeOf(value) as Prototype).constructor.name
+    }]`;
   } catch (err) {
     return `**non-serializable** (${err})`;
   }

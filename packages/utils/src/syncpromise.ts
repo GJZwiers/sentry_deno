@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/typedef */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { isThenable } from './is';
+import { isThenable } from "./is.ts";
 
 /** SyncPromise internal states */
 const enum States {
@@ -16,7 +16,9 @@ const enum States {
 
 // Overloads so we can call resolvedSyncPromise without arguments and generic argument
 export function resolvedSyncPromise(): PromiseLike<void>;
-export function resolvedSyncPromise<T>(value: T | PromiseLike<T>): PromiseLike<T>;
+export function resolvedSyncPromise<T>(
+  value: T | PromiseLike<T>,
+): PromiseLike<T>;
 
 /**
  * Creates a resolved sync promise.
@@ -24,8 +26,10 @@ export function resolvedSyncPromise<T>(value: T | PromiseLike<T>): PromiseLike<T
  * @param value the value to resolve the promise with
  * @returns the resolved sync promise
  */
-export function resolvedSyncPromise<T>(value?: T | PromiseLike<T>): PromiseLike<T> {
-  return new SyncPromise(resolve => {
+export function resolvedSyncPromise<T>(
+  value?: T | PromiseLike<T>,
+): PromiseLike<T> {
+  return new SyncPromise((resolve) => {
     resolve(value);
   });
 }
@@ -48,11 +52,16 @@ export function rejectedSyncPromise<T = never>(reason?: any): PromiseLike<T> {
  */
 class SyncPromise<T> implements PromiseLike<T> {
   private _state: States = States.PENDING;
-  private _handlers: Array<[boolean, (value: T) => void, (reason: any) => any]> = [];
+  private _handlers: Array<
+    [boolean, (value: T) => void, (reason: any) => any]
+  > = [];
   private _value: any;
 
   public constructor(
-    executor: (resolve: (value?: T | PromiseLike<T> | null) => void, reject: (reason?: any) => void) => void,
+    executor: (
+      resolve: (value?: T | PromiseLike<T> | null) => void,
+      reject: (reason?: any) => void,
+    ) => void,
   ) {
     try {
       executor(this._resolve, this._reject);
@@ -69,7 +78,7 @@ class SyncPromise<T> implements PromiseLike<T> {
     return new SyncPromise((resolve, reject) => {
       this._handlers.push([
         false,
-        result => {
+        (result) => {
           if (!onfulfilled) {
             // TODO: ¯\_(ツ)_/¯
             // TODO: FIXME
@@ -82,7 +91,7 @@ class SyncPromise<T> implements PromiseLike<T> {
             }
           }
         },
-        reason => {
+        (reason) => {
           if (!onrejected) {
             reject(reason);
           } else {
@@ -102,24 +111,26 @@ class SyncPromise<T> implements PromiseLike<T> {
   public catch<TResult = never>(
     onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | null,
   ): PromiseLike<T | TResult> {
-    return this.then(val => val, onrejected);
+    return this.then((val) => val, onrejected);
   }
 
   /** JSDoc */
-  public finally<TResult>(onfinally?: (() => void) | null): PromiseLike<TResult> {
+  public finally<TResult>(
+    onfinally?: (() => void) | null,
+  ): PromiseLike<TResult> {
     return new SyncPromise<TResult>((resolve, reject) => {
       let val: TResult | any;
       let isRejected: boolean;
 
       return this.then(
-        value => {
+        (value) => {
           isRejected = false;
           val = value;
           if (onfinally) {
             onfinally();
           }
         },
-        reason => {
+        (reason) => {
           isRejected = true;
           val = reason;
           if (onfinally) {
@@ -148,7 +159,10 @@ class SyncPromise<T> implements PromiseLike<T> {
   };
 
   /** JSDoc */
-  private readonly _setResult = (state: States, value?: T | PromiseLike<T> | any) => {
+  private readonly _setResult = (
+    state: States,
+    value?: T | PromiseLike<T> | any,
+  ) => {
     if (this._state !== States.PENDING) {
       return;
     }
@@ -173,7 +187,7 @@ class SyncPromise<T> implements PromiseLike<T> {
     const cachedHandlers = this._handlers.slice();
     this._handlers = [];
 
-    cachedHandlers.forEach(handler => {
+    cachedHandlers.forEach((handler) => {
       if (handler[0]) {
         return;
       }

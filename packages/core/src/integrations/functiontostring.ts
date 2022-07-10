@@ -1,5 +1,5 @@
-import { Integration, WrappedFunction } from '@sentry/types';
-import { getOriginalFunction } from '@sentry/utils';
+import { Integration, WrappedFunction } from "../../../types/src/index.ts";
+import { getOriginalFunction } from "../../../utils/src/index.ts";
 
 let originalFunctionToString: () => void;
 
@@ -8,7 +8,7 @@ export class FunctionToString implements Integration {
   /**
    * @inheritDoc
    */
-  public static id: string = 'FunctionToString';
+  public static id: string = "FunctionToString";
 
   /**
    * @inheritDoc
@@ -23,7 +23,10 @@ export class FunctionToString implements Integration {
     originalFunctionToString = Function.prototype.toString;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Function.prototype.toString = function (this: WrappedFunction, ...args: any[]): string {
+    Function.prototype.toString = function (
+      this: WrappedFunction,
+      ...args: any[]
+    ): string {
       const context = getOriginalFunction(this) || this;
       return originalFunctionToString.apply(context, args);
     };

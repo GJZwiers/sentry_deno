@@ -12,11 +12,18 @@ import {
   SessionAggregates,
   SessionEnvelope,
   SessionItem,
-} from '@sentry/types';
-import { createEnvelope, dropUndefinedKeys, dsnToString, getSentryBaggageItems } from '@sentry/utils';
+} from "../../types/src/index.ts";
+import {
+  createEnvelope,
+  dropUndefinedKeys,
+  dsnToString,
+  getSentryBaggageItems,
+} from "../../utils/src/index.ts";
 
 /** Extract sdk info from from the API metadata */
-function getSdkMetadataForEnvelopeHeader(metadata?: SdkMetadata): SdkInfo | undefined {
+function getSdkMetadataForEnvelopeHeader(
+  metadata?: SdkMetadata,
+): SdkInfo | undefined {
   if (!metadata || !metadata.sdk) {
     return;
   }
@@ -27,7 +34,7 @@ function getSdkMetadataForEnvelopeHeader(metadata?: SdkMetadata): SdkInfo | unde
 /**
  * Apply SdkInfo (name, version, packages, integrations) to the corresponding event key.
  * Merge with existing data if any.
- **/
+ */
 function enhanceEventWithSdkInfo(event: Event, sdkInfo?: SdkInfo): Event {
   if (!sdkInfo) {
     return event;
@@ -35,8 +42,14 @@ function enhanceEventWithSdkInfo(event: Event, sdkInfo?: SdkInfo): Event {
   event.sdk = event.sdk || {};
   event.sdk.name = event.sdk.name || sdkInfo.name;
   event.sdk.version = event.sdk.version || sdkInfo.version;
-  event.sdk.integrations = [...(event.sdk.integrations || []), ...(sdkInfo.integrations || [])];
-  event.sdk.packages = [...(event.sdk.packages || []), ...(sdkInfo.packages || [])];
+  event.sdk.integrations = [
+    ...(event.sdk.integrations || []),
+    ...(sdkInfo.integrations || []),
+  ];
+  event.sdk.packages = [
+    ...(event.sdk.packages || []),
+    ...(sdkInfo.packages || []),
+  ];
   return event;
 }
 
@@ -54,8 +67,9 @@ export function createSessionEnvelope(
     ...(!!tunnel && { dsn: dsnToString(dsn) }),
   };
 
-  const envelopeItem: SessionItem =
-    'aggregates' in session ? [{ type: 'sessions' }, session] : [{ type: 'session' }, session];
+  const envelopeItem: SessionItem = "aggregates" in session
+    ? [{ type: "sessions" }, session]
+    : [{ type: "session" }, session];
 
   return createEnvelope<SessionEnvelope>(envelopeHeaders, [envelopeItem]);
 }
@@ -70,14 +84,20 @@ export function createEventEnvelope(
   tunnel?: string,
 ): EventEnvelope {
   const sdkInfo = getSdkMetadataForEnvelopeHeader(metadata);
-  const eventType = event.type || 'event';
+  const eventType = event.type || "event";
 
   const { transactionSampling } = event.sdkProcessingMetadata || {};
-  const { method: samplingMethod, rate: sampleRate } = transactionSampling || {};
+  const { method: samplingMethod, rate: sampleRate } = transactionSampling ||
+    {};
 
   enhanceEventWithSdkInfo(event, metadata && metadata.sdk);
 
-  const envelopeHeaders = createEventEnvelopeHeaders(event, sdkInfo, tunnel, dsn);
+  const envelopeHeaders = createEventEnvelopeHeaders(
+    event,
+    sdkInfo,
+    tunnel,
+    dsn,
+  );
 
   // Prevent this data (which, if it exists, was used in earlier steps in the processing pipeline) from being sent to
   // sentry. (Note: Our use of this property comes and goes with whatever we might be debugging, whatever hacks we may
@@ -101,7 +121,8 @@ function createEventEnvelopeHeaders(
   tunnel: string | undefined,
   dsn: DsnComponents,
 ): EventEnvelopeHeaders {
-  const baggage: Baggage | undefined = event.sdkProcessingMetadata && event.sdkProcessingMetadata.baggage;
+  const baggage: Baggage | undefined = event.sdkProcessingMetadata &&
+    event.sdkProcessingMetadata.baggage;
   const dynamicSamplingContext = baggage && getSentryBaggageItems(baggage);
 
   return {
@@ -109,9 +130,11 @@ function createEventEnvelopeHeaders(
     sent_at: new Date().toISOString(),
     ...(sdkInfo && { sdk: sdkInfo }),
     ...(!!tunnel && { dsn: dsnToString(dsn) }),
-    ...(event.type === 'transaction' &&
+    ...(event.type === "transaction" &&
       dynamicSamplingContext && {
-        trace: dropUndefinedKeys({ ...dynamicSamplingContext }) as DynamicSamplingContext,
-      }),
+      trace: dropUndefinedKeys({
+        ...dynamicSamplingContext,
+      }) as DynamicSamplingContext,
+    }),
   };
 }

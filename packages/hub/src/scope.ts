@@ -20,7 +20,7 @@ import {
   Span,
   Transaction,
   User,
-} from '@sentry/types';
+} from "../../types/src/index.ts";
 import {
   dateTimestampInSeconds,
   getGlobalSingleton,
@@ -28,9 +28,9 @@ import {
   isThenable,
   logger,
   SyncPromise,
-} from '@sentry/utils';
+} from "../../utils/src/index.ts";
 
-import { updateSession } from './session';
+import { updateSession } from "./session.ts";
 
 /**
  * Absolute maximum number of breadcrumbs added to an event.
@@ -323,7 +323,7 @@ export class Scope implements ScopeInterface {
       return this;
     }
 
-    if (typeof captureContext === 'function') {
+    if (typeof captureContext === "function") {
       const updatedScope = (captureContext as <T>(scope: T) => T)(this);
       return updatedScope instanceof Scope ? updatedScope : this;
     }
@@ -391,7 +391,9 @@ export class Scope implements ScopeInterface {
    * @inheritDoc
    */
   public addBreadcrumb(breadcrumb: Breadcrumb, maxBreadcrumbs?: number): this {
-    const maxCrumbs = typeof maxBreadcrumbs === 'number' ? Math.min(maxBreadcrumbs, MAX_BREADCRUMBS) : MAX_BREADCRUMBS;
+    const maxCrumbs = typeof maxBreadcrumbs === "number"
+      ? Math.min(maxBreadcrumbs, MAX_BREADCRUMBS)
+      : MAX_BREADCRUMBS;
 
     // No data has been changed, so don't notify scope listeners
     if (maxCrumbs <= 0) {
@@ -402,7 +404,9 @@ export class Scope implements ScopeInterface {
       timestamp: dateTimestampInSeconds(),
       ...breadcrumb,
     };
-    this._breadcrumbs = [...this._breadcrumbs, mergedBreadcrumb].slice(-maxCrumbs);
+    this._breadcrumbs = [...this._breadcrumbs, mergedBreadcrumb].slice(
+      -maxCrumbs,
+    );
     this._notifyScopeListeners();
 
     return this;
@@ -448,7 +452,10 @@ export class Scope implements ScopeInterface {
    * @param hint May contain additional information about the original exception.
    * @hidden
    */
-  public applyToEvent(event: Event, hint: EventHint = {}): PromiseLike<Event | null> {
+  public applyToEvent(
+    event: Event,
+    hint: EventHint = {},
+  ): PromiseLike<Event | null> {
     if (this._extra && Object.keys(this._extra).length) {
       event.extra = { ...this._extra, ...event.extra };
     }
@@ -472,8 +479,12 @@ export class Scope implements ScopeInterface {
     // a trace context on the event. There is a product feature in place where we link
     // errors with transaction and it relies on that.
     if (this._span) {
-      event.contexts = { trace: this._span.getTraceContext(), ...event.contexts };
-      const transactionName = this._span.transaction && this._span.transaction.name;
+      event.contexts = {
+        trace: this._span.getTraceContext(),
+        ...event.contexts,
+      };
+      const transactionName = this._span.transaction &&
+        this._span.transaction.name;
       if (transactionName) {
         event.tags = { transaction: transactionName, ...event.tags };
       }
@@ -482,18 +493,30 @@ export class Scope implements ScopeInterface {
     this._applyFingerprint(event);
 
     event.breadcrumbs = [...(event.breadcrumbs || []), ...this._breadcrumbs];
-    event.breadcrumbs = event.breadcrumbs.length > 0 ? event.breadcrumbs : undefined;
+    event.breadcrumbs = event.breadcrumbs.length > 0
+      ? event.breadcrumbs
+      : undefined;
 
-    event.sdkProcessingMetadata = { ...event.sdkProcessingMetadata, ...this._sdkProcessingMetadata };
+    event.sdkProcessingMetadata = {
+      ...event.sdkProcessingMetadata,
+      ...this._sdkProcessingMetadata,
+    };
 
-    return this._notifyEventProcessors([...getGlobalEventProcessors(), ...this._eventProcessors], event, hint);
+    return this._notifyEventProcessors(
+      [...getGlobalEventProcessors(), ...this._eventProcessors],
+      event,
+      hint,
+    );
   }
 
   /**
    * Add data which will be accessible during event processing but won't get sent to Sentry
    */
   public setSDKProcessingMetadata(newData: { [key: string]: unknown }): this {
-    this._sdkProcessingMetadata = { ...this._sdkProcessingMetadata, ...newData };
+    this._sdkProcessingMetadata = {
+      ...this._sdkProcessingMetadata,
+      ...newData,
+    };
 
     return this;
   }
@@ -509,7 +532,7 @@ export class Scope implements ScopeInterface {
   ): PromiseLike<Event | null> {
     return new SyncPromise<Event | null>((resolve, reject) => {
       const processor = processors[index];
-      if (event === null || typeof processor !== 'function') {
+      if (event === null || typeof processor !== "function") {
         resolve(event);
       } else {
         const result = processor({ ...event }, hint) as Event | null;
@@ -521,7 +544,10 @@ export class Scope implements ScopeInterface {
 
         if (isThenable(result)) {
           void result
-            .then(final => this._notifyEventProcessors(processors, final, hint, index + 1).then(resolve))
+            .then((final) =>
+              this._notifyEventProcessors(processors, final, hint, index + 1)
+                .then(resolve)
+            )
             .then(null, reject);
         } else {
           void this._notifyEventProcessors(processors, result, hint, index + 1)
@@ -541,7 +567,7 @@ export class Scope implements ScopeInterface {
     // during the callback.
     if (!this._notifyingListeners) {
       this._notifyingListeners = true;
-      this._scopeListeners.forEach(callback => {
+      this._scopeListeners.forEach((callback) => {
         callback(this);
       });
       this._notifyingListeners = false;
@@ -576,7 +602,10 @@ export class Scope implements ScopeInterface {
  * Returns the global event processors.
  */
 function getGlobalEventProcessors(): EventProcessor[] {
-  return getGlobalSingleton<EventProcessor[]>('globalEventProcessors', () => []);
+  return getGlobalSingleton<EventProcessor[]>(
+    "globalEventProcessors",
+    () => [],
+  );
 }
 
 /**

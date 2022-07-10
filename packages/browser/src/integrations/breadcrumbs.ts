@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable max-lines */
-import { getCurrentHub } from '@sentry/core';
-import { Integration } from '@sentry/types';
+import { getCurrentHub } from "../../../core/src/index.ts";
+import { Integration } from "../../../types/src/index.ts";
 import {
   addInstrumentationHandler,
   getGlobalObject,
@@ -9,7 +9,7 @@ import {
   parseUrl,
   safeJoin,
   severityLevelFromString,
-} from '@sentry/utils';
+} from "../../../utils/src/index.ts";
 
 /** JSDoc */
 interface BreadcrumbsOptions {
@@ -21,7 +21,7 @@ interface BreadcrumbsOptions {
   xhr: boolean;
 }
 
-export const BREADCRUMB_INTEGRATION_ID = 'Breadcrumbs';
+export const BREADCRUMB_INTEGRATION_ID = "Breadcrumbs";
 
 /**
  * Default Breadcrumbs instrumentations
@@ -69,19 +69,19 @@ export class Breadcrumbs implements Integration {
    */
   public setupOnce(): void {
     if (this.options.console) {
-      addInstrumentationHandler('console', _consoleBreadcrumb);
+      addInstrumentationHandler("console", _consoleBreadcrumb);
     }
     if (this.options.dom) {
-      addInstrumentationHandler('dom', _domBreadcrumb(this.options.dom));
+      addInstrumentationHandler("dom", _domBreadcrumb(this.options.dom));
     }
     if (this.options.xhr) {
-      addInstrumentationHandler('xhr', _xhrBreadcrumb);
+      addInstrumentationHandler("xhr", _xhrBreadcrumb);
     }
     if (this.options.fetch) {
-      addInstrumentationHandler('fetch', _fetchBreadcrumb);
+      addInstrumentationHandler("fetch", _fetchBreadcrumb);
     }
     if (this.options.history) {
-      addInstrumentationHandler('history', _historyBreadcrumb);
+      addInstrumentationHandler("history", _historyBreadcrumb);
     }
   }
 }
@@ -91,13 +91,15 @@ export class Breadcrumbs implements Integration {
  * This is a HOC so that we get access to dom options in the closure.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function _domBreadcrumb(dom: BreadcrumbsOptions['dom']): (handlerData: { [key: string]: any }) => void {
+function _domBreadcrumb(
+  dom: BreadcrumbsOptions["dom"],
+): (handlerData: { [key: string]: any }) => void {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function _innerDomBreadcrumb(handlerData: { [key: string]: any }): void {
     let target;
-    let keyAttrs = typeof dom === 'object' ? dom.serializeAttribute : undefined;
+    let keyAttrs = typeof dom === "object" ? dom.serializeAttribute : undefined;
 
-    if (typeof keyAttrs === 'string') {
+    if (typeof keyAttrs === "string") {
       keyAttrs = [keyAttrs];
     }
 
@@ -107,7 +109,7 @@ function _domBreadcrumb(dom: BreadcrumbsOptions['dom']): (handlerData: { [key: s
         ? htmlTreeAsString(handlerData.event.target as Node, keyAttrs)
         : htmlTreeAsString(handlerData.event as unknown as Node, keyAttrs);
     } catch (e) {
-      target = '<unknown>';
+      target = "<unknown>";
     }
 
     if (target.length === 0) {
@@ -136,18 +138,20 @@ function _domBreadcrumb(dom: BreadcrumbsOptions['dom']): (handlerData: { [key: s
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function _consoleBreadcrumb(handlerData: { [key: string]: any }): void {
   const breadcrumb = {
-    category: 'console',
+    category: "console",
     data: {
       arguments: handlerData.args,
-      logger: 'console',
+      logger: "console",
     },
     level: severityLevelFromString(handlerData.level),
-    message: safeJoin(handlerData.args, ' '),
+    message: safeJoin(handlerData.args, " "),
   };
 
-  if (handlerData.level === 'assert') {
+  if (handlerData.level === "assert") {
     if (handlerData.args[0] === false) {
-      breadcrumb.message = `Assertion failed: ${safeJoin(handlerData.args.slice(1), ' ') || 'console.assert'}`;
+      breadcrumb.message = `Assertion failed: ${
+        safeJoin(handlerData.args.slice(1), " ") || "console.assert"
+      }`;
       breadcrumb.data.arguments = handlerData.args.slice(1);
     } else {
       // Don't capture a breadcrumb for passed assertions
@@ -172,17 +176,18 @@ function _xhrBreadcrumb(handlerData: { [key: string]: any }): void {
       return;
     }
 
-    const { method, url, status_code, body } = handlerData.xhr.__sentry_xhr__ || {};
+    const { method, url, status_code, body } = handlerData.xhr.__sentry_xhr__ ||
+      {};
 
     getCurrentHub().addBreadcrumb(
       {
-        category: 'xhr',
+        category: "xhr",
         data: {
           method,
           url,
           status_code,
         },
-        type: 'http',
+        type: "http",
       },
       {
         xhr: handlerData.xhr,
@@ -204,7 +209,10 @@ function _fetchBreadcrumb(handlerData: { [key: string]: any }): void {
     return;
   }
 
-  if (handlerData.fetchData.url.match(/sentry_key/) && handlerData.fetchData.method === 'POST') {
+  if (
+    handlerData.fetchData.url.match(/sentry_key/) &&
+    handlerData.fetchData.method === "POST"
+  ) {
     // We will not create breadcrumbs for fetch requests that contain `sentry_key` (internal sentry requests)
     return;
   }
@@ -212,10 +220,10 @@ function _fetchBreadcrumb(handlerData: { [key: string]: any }): void {
   if (handlerData.error) {
     getCurrentHub().addBreadcrumb(
       {
-        category: 'fetch',
+        category: "fetch",
         data: handlerData.fetchData,
-        level: 'error',
-        type: 'http',
+        level: "error",
+        type: "http",
       },
       {
         data: handlerData.error,
@@ -225,12 +233,12 @@ function _fetchBreadcrumb(handlerData: { [key: string]: any }): void {
   } else {
     getCurrentHub().addBreadcrumb(
       {
-        category: 'fetch',
+        category: "fetch",
         data: {
           ...handlerData.fetchData,
           status_code: handlerData.response.status,
         },
-        type: 'http',
+        type: "http",
       },
       {
         input: handlerData.args,
@@ -259,15 +267,20 @@ function _historyBreadcrumb(handlerData: { [key: string]: any }): void {
 
   // Use only the path component of the URL if the URL matches the current
   // document (almost all the time when using pushState)
-  if (parsedLoc.protocol === parsedTo.protocol && parsedLoc.host === parsedTo.host) {
+  if (
+    parsedLoc.protocol === parsedTo.protocol && parsedLoc.host === parsedTo.host
+  ) {
     to = parsedTo.relative;
   }
-  if (parsedLoc.protocol === parsedFrom.protocol && parsedLoc.host === parsedFrom.host) {
+  if (
+    parsedLoc.protocol === parsedFrom.protocol &&
+    parsedLoc.host === parsedFrom.host
+  ) {
     from = parsedFrom.relative;
   }
 
   getCurrentHub().addBreadcrumb({
-    category: 'navigation',
+    category: "navigation",
     data: {
       from,
       to,

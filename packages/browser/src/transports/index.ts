@@ -1,2 +1,2 @@
-export { makeFetchTransport } from './fetch';
-export { makeXHRTransport } from './xhr';
+export { makeFetchTransport } from "./fetch.ts";
+export { makeXHRTransport } from "./xhr.ts";

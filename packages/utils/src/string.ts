@@ -1,4 +1,4 @@
-import { isRegExp, isString } from './is';
+import { isRegExp, isString } from "./is.ts";
 
 /**
  * Truncates given string to the maximum characters count
@@ -8,7 +8,7 @@ import { isRegExp, isString } from './is';
  * @returns string Encoded
  */
 export function truncate(str: string, max: number = 0): string {
-  if (typeof str !== 'string' || max === 0) {
+  if (typeof str !== "string" || max === 0) {
     return str;
   }
   return str.length <= max ? str : `${str.substr(0, max)}...`;
@@ -51,7 +51,7 @@ export function snipLine(line: string, colno: number): string {
     newLine = `'{snip} ${newLine}`;
   }
   if (end < lineLength) {
-    newLine += ' {snip}';
+    newLine += " {snip}";
   }
 
   return newLine;
@@ -66,7 +66,7 @@ export function snipLine(line: string, colno: number): string {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function safeJoin(input: any[], delimiter?: string): string {
   if (!Array.isArray(input)) {
-    return '';
+    return "";
   }
 
   const output = [];
@@ -76,7 +76,7 @@ export function safeJoin(input: any[], delimiter?: string): string {
     try {
       output.push(String(value));
     } catch (e) {
-      output.push('[value cannot be serialized]');
+      output.push("[value cannot be serialized]");
     }
   }
 
@@ -88,7 +88,10 @@ export function safeJoin(input: any[], delimiter?: string): string {
  * @param value The string value to be checked against
  * @param pattern Either a regex or a string that must be contained in value
  */
-export function isMatchingPattern(value: string, pattern: RegExp | string): boolean {
+export function isMatchingPattern(
+  value: string,
+  pattern: RegExp | string,
+): boolean {
   if (!isString(value)) {
     return false;
   }
@@ -96,7 +99,7 @@ export function isMatchingPattern(value: string, pattern: RegExp | string): bool
   if (isRegExp(pattern)) {
     return pattern.test(value);
   }
-  if (typeof pattern === 'string') {
+  if (typeof pattern === "string") {
     return value.indexOf(pattern) !== -1;
   }
   return false;
@@ -116,5 +119,8 @@ export function isMatchingPattern(value: string, pattern: RegExp | string): bool
 export function escapeStringForRegex(regexString: string): string {
   // escape the hyphen separately so we can also replace it with a unicode literal hyphen, to avoid the problems
   // discussed in https://github.com/sindresorhus/escape-string-regexp/issues/20.
-  return regexString.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&').replace(/-/g, '\\x2d');
+  return regexString.replace(/[|\\{}()[\]^$+*?.]/g, "\\$&").replace(
+    /-/g,
+    "\\x2d",
+  );
 }

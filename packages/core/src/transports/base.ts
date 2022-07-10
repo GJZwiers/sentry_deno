@@ -5,7 +5,7 @@ import {
   InternalBaseTransportOptions,
   Transport,
   TransportRequestExecutor,
-} from '@sentry/types';
+} from "../../../types/src/index.ts";
 import {
   createEnvelope,
   envelopeItemTypeToDataCategory,
@@ -19,7 +19,7 @@ import {
   SentryError,
   serializeEnvelope,
   updateRateLimits,
-} from '@sentry/utils';
+} from "../../../utils/src/index.ts";
 
 export const DEFAULT_TRANSPORT_BUFFER_SIZE = 30;
 
@@ -32,11 +32,14 @@ export const DEFAULT_TRANSPORT_BUFFER_SIZE = 30;
 export function createTransport(
   options: InternalBaseTransportOptions,
   makeRequest: TransportRequestExecutor,
-  buffer: PromiseBuffer<void> = makePromiseBuffer(options.bufferSize || DEFAULT_TRANSPORT_BUFFER_SIZE),
+  buffer: PromiseBuffer<void> = makePromiseBuffer(
+    options.bufferSize || DEFAULT_TRANSPORT_BUFFER_SIZE,
+  ),
 ): Transport {
   let rateLimits: RateLimits = {};
 
-  const flush = (timeout?: number): PromiseLike<boolean> => buffer.drain(timeout);
+  const flush = (timeout?: number): PromiseLike<boolean> =>
+    buffer.drain(timeout);
 
   function send(envelope: Envelope): PromiseLike<void> {
     const filteredEnvelopeItems: EnvelopeItem[] = [];
@@ -45,7 +48,10 @@ export function createTransport(
     forEachEnvelopeItem(envelope, (item, type) => {
       const envelopeItemDataCategory = envelopeItemTypeToDataCategory(type);
       if (isRateLimited(rateLimits, envelopeItemDataCategory)) {
-        options.recordDroppedEvent('ratelimit_backoff', envelopeItemDataCategory);
+        options.recordDroppedEvent(
+          "ratelimit_backoff",
+          envelopeItemDataCategory,
+        );
       } else {
         filteredEnvelopeItems.push(item);
       }
@@ -57,37 +63,52 @@ export function createTransport(
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const filteredEnvelope: Envelope = createEnvelope(envelope[0], filteredEnvelopeItems as any);
+    const filteredEnvelope: Envelope = createEnvelope(
+      envelope[0],
+      filteredEnvelopeItems as any,
+    );
 
     // Creates client report for each item in an envelope
     const recordEnvelopeLoss = (reason: EventDropReason): void => {
       forEachEnvelopeItem(filteredEnvelope, (_, type) => {
-        options.recordDroppedEvent(reason, envelopeItemTypeToDataCategory(type));
+        options.recordDroppedEvent(
+          reason,
+          envelopeItemTypeToDataCategory(type),
+        );
       });
     };
 
     const requestTask = (): PromiseLike<void> =>
-      makeRequest({ body: serializeEnvelope(filteredEnvelope, options.textEncoder) }).then(
-        response => {
+      makeRequest({
+        body: serializeEnvelope(filteredEnvelope, options.textEncoder),
+      }).then(
+        (response) => {
           // We don't want to throw on NOK responses, but we want to at least log them
-          if (response.statusCode !== undefined && (response.statusCode < 200 || response.statusCode >= 300)) {
-            __DEBUG_BUILD__ && logger.warn(`Sentry responded with status code ${response.statusCode} to sent event.`);
+          if (
+            response.statusCode !== undefined &&
+            (response.statusCode < 200 || response.statusCode >= 300)
+          ) {
+            __DEBUG_BUILD__ &&
+              logger.warn(
+                `Sentry responded with status code ${response.statusCode} to sent event.`,
+              );
           }
 
           rateLimits = updateRateLimits(rateLimits, response);
         },
-        error => {
-          __DEBUG_BUILD__ && logger.error('Failed while sending event:', error);
-          recordEnvelopeLoss('network_error');
+        (error) => {
+          __DEBUG_BUILD__ && logger.error("Failed while sending event:", error);
+          recordEnvelopeLoss("network_error");
         },
       );
 
     return buffer.add(requestTask).then(
-      result => result,
-      error => {
+      (result) => result,
+      (error) => {
         if (error instanceof SentryError) {
-          __DEBUG_BUILD__ && logger.error('Skipped sending event due to full buffer');
-          recordEnvelopeLoss('queue_overflow');
+          __DEBUG_BUILD__ &&
+            logger.error("Skipped sending event due to full buffer");
+          recordEnvelopeLoss("queue_overflow");
           return resolvedSyncPromise();
         } else {
           throw error;

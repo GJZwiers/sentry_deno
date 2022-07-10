@@ -1,5 +1,14 @@
-import { SerializedSession, Session, SessionContext, SessionStatus } from '@sentry/types';
-import { dropUndefinedKeys, timestampInSeconds, uuid4 } from '@sentry/utils';
+import {
+  SerializedSession,
+  Session,
+  SessionContext,
+  SessionStatus,
+} from "../../types/src/index.ts";
+import {
+  dropUndefinedKeys,
+  timestampInSeconds,
+  uuid4,
+} from "../../utils/src/index.ts";
 
 /**
  * Creates a new `Session` object by setting certain default parameters. If optional @param context
@@ -9,7 +18,9 @@ import { dropUndefinedKeys, timestampInSeconds, uuid4 } from '@sentry/utils';
  *
  * @returns a new `Session` object
  */
-export function makeSession(context?: Omit<SessionContext, 'started' | 'status'>): Session {
+export function makeSession(
+  context?: Omit<SessionContext, "started" | "status">,
+): Session {
   // Both timestamp and started are in seconds since the UNIX epoch.
   const startingTime = timestampInSeconds();
 
@@ -19,7 +30,7 @@ export function makeSession(context?: Omit<SessionContext, 'started' | 'status'>
     timestamp: startingTime,
     started: startingTime,
     duration: 0,
-    status: 'ok',
+    status: "ok",
     errors: 0,
     ignoreDuration: false,
     toJSON: () => sessionToJSON(session),
@@ -44,14 +55,18 @@ export function makeSession(context?: Omit<SessionContext, 'started' | 'status'>
  * @param context the `SessionContext` holding the properties that should be updated in @param session
  */
 // eslint-disable-next-line complexity
-export function updateSession(session: Session, context: SessionContext = {}): void {
+export function updateSession(
+  session: Session,
+  context: SessionContext = {},
+): void {
   if (context.user) {
     if (!session.ipAddress && context.user.ip_address) {
       session.ipAddress = context.user.ip_address;
     }
 
     if (!session.did && !context.did) {
-      session.did = context.user.id || context.user.email || context.user.username;
+      session.did = context.user.id || context.user.email ||
+        context.user.username;
     }
   }
 
@@ -70,12 +85,12 @@ export function updateSession(session: Session, context: SessionContext = {}): v
   if (!session.did && context.did) {
     session.did = `${context.did}`;
   }
-  if (typeof context.started === 'number') {
+  if (typeof context.started === "number") {
     session.started = context.started;
   }
   if (session.ignoreDuration) {
     session.duration = undefined;
-  } else if (typeof context.duration === 'number') {
+  } else if (typeof context.duration === "number") {
     session.duration = context.duration;
   } else {
     const duration = session.timestamp - session.started;
@@ -93,7 +108,7 @@ export function updateSession(session: Session, context: SessionContext = {}): v
   if (!session.userAgent && context.userAgent) {
     session.userAgent = context.userAgent;
   }
-  if (typeof context.errors === 'number') {
+  if (typeof context.errors === "number") {
     session.errors = context.errors;
   }
   if (context.status) {
@@ -112,12 +127,15 @@ export function updateSession(session: Session, context: SessionContext = {}): v
  *               this function will keep the previously set status, unless it was `'ok'` in which case
  *               it is changed to `'exited'`.
  */
-export function closeSession(session: Session, status?: Exclude<SessionStatus, 'ok'>): void {
+export function closeSession(
+  session: Session,
+  status?: Exclude<SessionStatus, "ok">,
+): void {
   let context = {};
   if (status) {
     context = { status };
-  } else if (session.status === 'ok') {
-    context = { status: 'exited' };
+  } else if (session.status === "ok") {
+    context = { status: "exited" };
   }
 
   updateSession(session, context);
@@ -141,7 +159,9 @@ function sessionToJSON(session: Session): SerializedSession {
     timestamp: new Date(session.timestamp * 1000).toISOString(),
     status: session.status,
     errors: session.errors,
-    did: typeof session.did === 'number' || typeof session.did === 'string' ? `${session.did}` : undefined,
+    did: typeof session.did === "number" || typeof session.did === "string"
+      ? `${session.did}`
+      : undefined,
     duration: session.duration,
     attrs: {
       release: session.release,

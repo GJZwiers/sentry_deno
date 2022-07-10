@@ -1,5 +1,5 @@
-import { getGlobalObject } from './global';
-import { isString } from './is';
+import { getGlobalObject } from "./global.ts";
+import { isString } from "./is.ts";
 
 /**
  * Given a child DOM element, returns a query-selector statement describing that
@@ -23,7 +23,7 @@ export function htmlTreeAsString(elem: unknown, keyAttrs?: string[]): string {
     const out = [];
     let height = 0;
     let len = 0;
-    const separator = ' > ';
+    const separator = " > ";
     const sepLength = separator.length;
     let nextStr;
 
@@ -34,7 +34,11 @@ export function htmlTreeAsString(elem: unknown, keyAttrs?: string[]): string {
       // - nextStr is the 'html' element
       // - the length of the string that would be created exceeds MAX_OUTPUT_LEN
       //   (ignore this limit if we are on the first iteration)
-      if (nextStr === 'html' || (height > 1 && len + out.length * sepLength + nextStr.length >= MAX_OUTPUT_LEN)) {
+      if (
+        nextStr === "html" ||
+        (height > 1 &&
+          len + out.length * sepLength + nextStr.length >= MAX_OUTPUT_LEN)
+      ) {
         break;
       }
 
@@ -46,7 +50,7 @@ export function htmlTreeAsString(elem: unknown, keyAttrs?: string[]): string {
 
     return out.reverse().join(separator);
   } catch (_oO) {
-    return '<unknown>';
+    return "<unknown>";
   }
 }
 
@@ -71,19 +75,20 @@ function _htmlElementAsString(el: unknown, keyAttrs?: string[]): string {
   let i;
 
   if (!elem || !elem.tagName) {
-    return '';
+    return "";
   }
 
   out.push(elem.tagName.toLowerCase());
 
   // Pairs of attribute keys defined in `serializeAttribute` and their values on element.
-  const keyAttrPairs =
-    keyAttrs && keyAttrs.length
-      ? keyAttrs.filter(keyAttr => elem.getAttribute(keyAttr)).map(keyAttr => [keyAttr, elem.getAttribute(keyAttr)])
-      : null;
+  const keyAttrPairs = keyAttrs && keyAttrs.length
+    ? keyAttrs.filter((keyAttr) => elem.getAttribute(keyAttr)).map(
+      (keyAttr) => [keyAttr, elem.getAttribute(keyAttr)]
+    )
+    : null;
 
   if (keyAttrPairs && keyAttrPairs.length) {
-    keyAttrPairs.forEach(keyAttrPair => {
+    keyAttrPairs.forEach((keyAttrPair) => {
       out.push(`[${keyAttrPair[0]}="${keyAttrPair[1]}"]`);
     });
   } else {
@@ -100,7 +105,7 @@ function _htmlElementAsString(el: unknown, keyAttrs?: string[]): string {
       }
     }
   }
-  const allowedAttrs = ['type', 'name', 'title', 'alt'];
+  const allowedAttrs = ["type", "name", "title", "alt"];
   for (i = 0; i < allowedAttrs.length; i++) {
     key = allowedAttrs[i];
     attr = elem.getAttribute(key);
@@ -108,7 +113,7 @@ function _htmlElementAsString(el: unknown, keyAttrs?: string[]): string {
       out.push(`[${key}="${attr}"]`);
     }
   }
-  return out.join('');
+  return out.join("");
 }
 
 /**
@@ -119,6 +124,6 @@ export function getLocationHref(): string {
   try {
     return global.document.location.href;
   } catch (oO) {
-    return '';
+    return "";
   }
 }
