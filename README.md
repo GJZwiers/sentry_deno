@@ -1,6 +1,6 @@
 # Sentry_deno
 
-This is an unofficial port of the Sentry SDK for JavaScript to Deno.
+This is an unofficial port of the Sentry browser SDK for JavaScript to Deno.
 
 ```ts
 import * as Sentry from "https://deno.land/x/sentry_deno/main.ts";

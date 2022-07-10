@@ -1,4 +1,5 @@
-import { getMainCarrier, Hub } from '@sentry/hub';
+import { getMainCarrier, Hub } from '../../hub/src/index.ts';
+import { __DEBUG_BUILD__ } from "../../types/src/globals.ts";
 import {
   ClientOptions,
   CustomSamplingContext,
@@ -7,13 +8,13 @@ import {
   Options,
   SamplingContext,
   TransactionContext,
-} from '@sentry/types';
-import { dynamicRequire, isNaN, isNodeEnv, loadModule, logger } from '@sentry/utils';
+} from '../../types/src/index.ts';
+import { dynamicRequire, isNaN, isNodeEnv, loadModule, logger } from '../../utils/src/index.ts';
 
-import { registerErrorInstrumentation } from './errors';
-import { IdleTransaction } from './idletransaction';
-import { Transaction } from './transaction';
-import { hasTracingEnabled } from './utils';
+import { registerErrorInstrumentation } from './errors.ts';
+import { IdleTransaction } from './idletransaction.ts';
+import { Transaction } from './transaction.ts';
+import { hasTracingEnabled } from './utils.ts';
 
 /** Returns all trace headers that are currently on the top scope. */
 function traceHeaders(this: Hub): { [key: string]: string } {

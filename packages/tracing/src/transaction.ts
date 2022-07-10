@@ -1,4 +1,5 @@
-import { getCurrentHub, Hub } from '@sentry/hub';
+import { getCurrentHub, Hub } from '../../hub/src/index.ts';
+import { __DEBUG_BUILD__ } from "../../types/src/globals.ts";
 import {
   Baggage,
   BaggageObj,
@@ -8,10 +9,10 @@ import {
   Transaction as TransactionInterface,
   TransactionContext,
   TransactionMetadata,
-} from '@sentry/types';
-import { createBaggage, dropUndefinedKeys, getSentryBaggageItems, isBaggageMutable, logger } from '@sentry/utils';
+} from '../../types/src/index.ts';
+import { createBaggage, dropUndefinedKeys, getSentryBaggageItems, isBaggageMutable, logger } from '../../utils/src/index.ts';
 
-import { Span as SpanClass, SpanRecorder } from './span';
+import { Span as SpanClass, SpanRecorder } from './span.ts';
 
 /** JSDoc */
 export class Transaction extends SpanClass implements TransactionInterface {

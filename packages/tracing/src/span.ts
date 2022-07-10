@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
-import { Primitive, Span as SpanInterface, SpanContext, Transaction } from '@sentry/types';
-import { dropUndefinedKeys, timestampWithMs, uuid4 } from '@sentry/utils';
+import { Primitive, Span as SpanInterface, SpanContext, Transaction } from '../../types/src/index.ts';
+import { dropUndefinedKeys, timestampWithMs, uuid4 } from '../../utils/src/index.ts';
 
 /**
  * Keeps track of finished spans for a given transaction

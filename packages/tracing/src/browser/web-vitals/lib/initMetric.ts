@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { Metric } from '../types';
-import { generateUniqueID } from './generateUniqueID';
+import { Metric } from '../types.ts';
+import { generateUniqueID } from './generateUniqueID.ts';
 
 export const initMetric = (name: Metric['name'], value?: number): Metric => {
   return {

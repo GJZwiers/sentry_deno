@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { bindReporter } from './lib/bindReporter';
-import { getVisibilityWatcher } from './lib/getVisibilityWatcher';
-import { initMetric } from './lib/initMetric';
-import { observe, PerformanceEntryHandler } from './lib/observe';
-import { onHidden } from './lib/onHidden';
-import { PerformanceEventTiming, ReportHandler } from './types';
+import { bindReporter } from './lib/bindReporter.ts';
+import { getVisibilityWatcher } from './lib/getVisibilityWatcher.ts';
+import { initMetric } from './lib/initMetric.ts';
+import { observe, PerformanceEntryHandler } from './lib/observe.ts';
+import { onHidden } from './lib/onHidden.ts';
+import { PerformanceEventTiming, ReportHandler } from './types.ts';
 
 export const getFID = (onReport: ReportHandler, reportAllChanges?: boolean): void => {
   const visibilityWatcher = getVisibilityWatcher();

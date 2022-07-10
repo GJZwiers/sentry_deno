@@ -1,18 +1,19 @@
-import { Hub } from '@sentry/hub';
-import { EventProcessor, Integration, Transaction, TransactionContext } from '@sentry/types';
-import { getGlobalObject, logger, parseBaggageSetMutability } from '@sentry/utils';
+import { Hub } from '../../../hub/src/index.ts';
+import { __DEBUG_BUILD__ } from "../../../types/src/globals.ts";
+import { EventProcessor, Integration, Transaction, TransactionContext } from '../../../types/src/index.ts';
+import { getGlobalObject, logger, parseBaggageSetMutability } from '../../../utils/src/index.ts';
 
-import { startIdleTransaction } from '../hubextensions';
-import { DEFAULT_FINAL_TIMEOUT, DEFAULT_IDLE_TIMEOUT } from '../idletransaction';
-import { extractTraceparentData } from '../utils';
-import { registerBackgroundTabDetection } from './backgroundtab';
-import { addPerformanceEntries, startTrackingWebVitals } from './metrics';
+import { startIdleTransaction } from '../hubextensions.ts';
+import { DEFAULT_FINAL_TIMEOUT, DEFAULT_IDLE_TIMEOUT } from '../idletransaction.ts';
+import { extractTraceparentData } from '../utils.ts';
+import { registerBackgroundTabDetection } from './backgroundtab.ts';
+import { addPerformanceEntries, startTrackingWebVitals } from './metrics/index.ts';
 import {
   defaultRequestInstrumentationOptions,
   instrumentOutgoingRequests,
   RequestInstrumentationOptions,
-} from './request';
-import { instrumentRoutingWithDefaults } from './router';
+} from './request.ts';
+import { instrumentRoutingWithDefaults } from './router.ts';
 
 export const BROWSER_TRACING_INTEGRATION_ID = 'BrowserTracing';
 

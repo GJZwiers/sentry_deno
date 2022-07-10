@@ -11,9 +11,9 @@ export type {
   Stacktrace,
   Thread,
   User,
-} from '@sentry/types';
+} from '../../types/src/index.ts';
 
-export type { BrowserOptions, ReportDialogOptions } from '@sentry/browser';
+export type { BrowserOptions, ReportDialogOptions } from '../../browser/src/index.ts';
 
 export {
   addGlobalEventProcessor,
@@ -36,9 +36,9 @@ export {
   makeFetchTransport,
   makeXHRTransport,
   withScope,
-} from '@sentry/browser';
+} from '../../browser/src/index.ts';
 
-export { BrowserClient } from '@sentry/browser';
+export { BrowserClient } from '../../browser/src/index.ts';
 export {
   defaultIntegrations,
   forceLoad,
@@ -49,16 +49,16 @@ export {
   flush,
   close,
   wrap,
-} from '@sentry/browser';
-export { SDK_VERSION } from '@sentry/browser';
+} from '../../browser/src/index.ts';
+export { SDK_VERSION } from '../../browser/src/index.ts';
 
-import { Integrations as BrowserIntegrations } from '@sentry/browser';
-import { getGlobalObject } from '@sentry/utils';
+import { Integrations as BrowserIntegrations } from '../../browser/src/index.ts';
+import { getGlobalObject } from '../../utils/src/index.ts';
 
-import { BrowserTracing } from './browser';
-import { addExtensionMethods } from './hubextensions';
+import { BrowserTracing } from './browser/index.ts';
+import { addExtensionMethods } from './hubextensions.ts';
 
-export { Span } from './span';
+export { Span } from './span.ts';
 
 let windowIntegrations = {};
 

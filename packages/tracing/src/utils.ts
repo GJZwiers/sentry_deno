@@ -1,5 +1,5 @@
-import { getCurrentHub, Hub } from '@sentry/hub';
-import { Options, Transaction } from '@sentry/types';
+import { getCurrentHub, Hub } from '../../hub/src/index.ts';
+import { Options, Transaction } from '../../types/src/index.ts';
 
 /**
  * The `extractTraceparentData` function and `TRACEPARENT_REGEXP` constant used
@@ -13,7 +13,7 @@ import { Options, Transaction } from '@sentry/types';
  *
  * See https://github.com/getsentry/sentry-javascript/issues/4642 for more details.
  */
-export { TRACEPARENT_REGEXP, extractTraceparentData } from '@sentry/utils';
+export { TRACEPARENT_REGEXP, extractTraceparentData } from '../../utils/src/index.ts';
 
 /**
  * Determines if tracing is currently enabled.
@@ -52,4 +52,4 @@ export function secToMs(time: number): number {
 }
 
 // so it can be used in manual instrumentation without necessitating a hard dependency on @sentry/utils
-export { stripUrlQueryAndFragment } from '@sentry/utils';
+export { stripUrlQueryAndFragment } from '../../utils/src/index.ts';
