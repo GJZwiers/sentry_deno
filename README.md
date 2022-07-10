@@ -3,7 +3,7 @@
 This is an unofficial port of the Sentry SDK for JavaScript to Deno.
 
 ```ts
-import * as Sentry from "./packages/browser/src/index.ts";  // deno.land/x/sentry_deno/main.ts
+import * as Sentry from "deno.land/x/sentry_deno/main.ts";
 import * as log from "https://deno.land/std@0.146.0/log/mod.ts";
 
 Sentry.init({
