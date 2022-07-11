@@ -1,5 +1,6 @@
-import { Transaction, TransactionContext } from '@sentry/types';
-import { addInstrumentationHandler, getGlobalObject, logger } from '@sentry/utils';
+import { __DEBUG_BUILD__ } from "../../../types/src/globals.ts";
+import { Transaction, TransactionContext } from '../../../types/src/index.ts';
+import { addInstrumentationHandler, getGlobalObject, logger } from '../../../utils/src/index.ts';
 
 const global = getGlobalObject<Window>();
 
