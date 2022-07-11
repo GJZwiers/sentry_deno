@@ -1,4 +1,4 @@
-import { DebugImage } from '@sentry/types';
+import { DebugImage } from '../../types/src/index.ts';
 
 export const IMAGES: Array<DebugImage> = [];
 
