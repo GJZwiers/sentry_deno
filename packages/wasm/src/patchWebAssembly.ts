@@ -1,4 +1,4 @@
-import { registerModule } from './registry';
+import { registerModule } from './registry.ts';
 
 /**
  * Patches the web assembly runtime.
