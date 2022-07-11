@@ -21,7 +21,7 @@ import { onHidden } from './onHidden.ts';
 let firstHiddenTime = -1;
 
 const initHiddenTime = (): number => {
-  return getGlobalObject<Window>().document.visibilityState === 'hidden' ? 0 : Infinity;
+  return Infinity; // getGlobalObject<Window>().document.visibilityState === 'hidden' ? 0 : Infinity;
 };
 
 const trackChanges = (): void => {
