@@ -1,6 +1,6 @@
-import { Span, SpanContext } from '@sentry/types';
+import { Span, SpanContext } from '../../../../types/src/index.ts';
 
-import { Transaction } from '../../transaction';
+import { Transaction } from '../../transaction.ts';
 
 /**
  * Checks if a given value is a valid measurement value.

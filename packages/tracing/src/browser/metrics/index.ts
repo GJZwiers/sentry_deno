@@ -1,20 +1,21 @@
 /* eslint-disable max-lines */
-import { Measurements } from '@sentry/types';
-import { browserPerformanceTimeOrigin, getGlobalObject, htmlTreeAsString, logger } from '@sentry/utils';
+import { __DEBUG_BUILD__ } from "../../../../types/src/globals.ts";
+import { Measurements } from '../../../../types/src/index.ts';
+import { browserPerformanceTimeOrigin, getGlobalObject, htmlTreeAsString, logger } from '../../../../utils/src/index.ts';
 
-import { Transaction } from '../../transaction';
-import { msToSec } from '../../utils';
-import { getCLS, LayoutShift } from '../web-vitals/getCLS';
-import { getFID } from '../web-vitals/getFID';
-import { getLCP, LargestContentfulPaint } from '../web-vitals/getLCP';
-import { getVisibilityWatcher } from '../web-vitals/lib/getVisibilityWatcher';
-import { NavigatorDeviceMemory, NavigatorNetworkInformation } from '../web-vitals/types';
-import { _startChild, isMeasurementValue } from './utils';
+import { Transaction } from '../../transaction.ts';
+import { msToSec } from '../../utils.ts';
+import { getCLS, LayoutShift } from '../web-vitals/getCLS.ts';
+import { getFID } from '../web-vitals/getFID.ts';
+import { getLCP, LargestContentfulPaint } from '../web-vitals/getLCP.ts';
+import { getVisibilityWatcher } from '../web-vitals/lib/getVisibilityWatcher.ts';
+import { NavigatorDeviceMemory, NavigatorNetworkInformation } from '../web-vitals/types.ts';
+import { _startChild, isMeasurementValue } from './utils.ts';
 
 const global = getGlobalObject<Window>();
 
 function getBrowserPerformanceAPI(): Performance | undefined {
-  return global && global.addEventListener && global.performance;
+  return performance;
 }
 
 let _performanceCursor: number = 0;
@@ -29,9 +30,7 @@ let _clsEntry: LayoutShift | undefined;
 export function startTrackingWebVitals(reportAllChanges: boolean = false): void {
   const performance = getBrowserPerformanceAPI();
   if (performance && browserPerformanceTimeOrigin) {
-    if (performance.mark) {
-      global.performance.mark('sentry-tracing-init');
-    }
+      performance.mark('sentry-tracing-init');
     _trackCLS();
     _trackLCP(reportAllChanges);
     _trackFID();
@@ -91,7 +90,7 @@ function _trackFID(): void {
 /** Add performance related spans to a transaction */
 export function addPerformanceEntries(transaction: Transaction): void {
   const performance = getBrowserPerformanceAPI();
-  if (!performance || !global.performance.getEntries || !browserPerformanceTimeOrigin) {
+  if (!performance || !performance.getEntries || !browserPerformanceTimeOrigin) {
     // Gatekeeper if performance API not available
     return;
   }
