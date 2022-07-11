@@ -1,4 +1,3 @@
-import { getGlobalObject } from "./global.ts";
 import { dynamicRequire, isNodeEnv } from "./node.ts";
 
 /**
@@ -41,7 +40,6 @@ interface Performance {
  * Wrapping the native API works around differences in behavior from different browsers.
  */
 function getBrowserPerformance(): Performance | undefined {
-  const { performance } = getGlobalObject<Window>();
   if (!performance || !performance.now) {
     return undefined;
   }
@@ -147,7 +145,7 @@ export const browserPerformanceTimeOrigin = ((): number | undefined => {
   // performance.timing.navigationStart, which results in poor results in performance data. We only treat time origin
   // data as reliable if they are within a reasonable threshold of the current time.
 
-  const { performance } = getGlobalObject<Window>();
+  // const { performance } = getGlobalObject<Window>();
   if (!performance || !performance.now) {
     _browserPerformanceTimeOriginMode = "none";
     return undefined;
@@ -163,14 +161,8 @@ export const browserPerformanceTimeOrigin = ((): number | undefined => {
     : threshold;
   const timeOriginIsReliable = timeOriginDelta < threshold;
 
-  // While performance.timing.navigationStart is deprecated in favor of performance.timeOrigin, performance.timeOrigin
-  // is not as widely supported. Namely, performance.timeOrigin is undefined in Safari as of writing.
-  // Also as of writing, performance.timing is not available in Web Workers in mainstream browsers, so it is not always
-  // a valid fallback. In the absence of an initial time provided by the browser, fallback to the current time from the
-  // Date API.
   // eslint-disable-next-line deprecation/deprecation
-  const navigationStart = performance.timing &&
-    performance.timing.navigationStart;
+  const navigationStart = performance.timeOrigin;
   const hasNavigationStart = typeof navigationStart === "number";
   // if navigationStart isn't available set delta to threshold so it isn't used
   const navigationStartDelta = hasNavigationStart
