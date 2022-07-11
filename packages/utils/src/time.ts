@@ -1,5 +1,3 @@
-import { dynamicRequire, isNodeEnv } from "./node.ts";
-
 /**
  * An object that can return the current timestamp in seconds since the UNIX epoch.
  */
@@ -74,26 +72,9 @@ function getBrowserPerformance(): Performance | undefined {
 }
 
 /**
- * Returns the native Performance API implementation from Node.js. Returns undefined in old Node.js versions that don't
- * implement the API.
- */
-function getNodePerformance(): Performance | undefined {
-  try {
-    const perfHooks = dynamicRequire(module, "perf_hooks") as {
-      performance: Performance;
-    };
-    return perfHooks.performance;
-  } catch (_) {
-    return undefined;
-  }
-}
-
-/**
  * The Performance API implementation for the current platform, if available.
  */
-const platformPerformance: Performance | undefined = isNodeEnv()
-  ? getNodePerformance()
-  : getBrowserPerformance();
+const platformPerformance: Performance | undefined = getBrowserPerformance();
 
 const timestampSource: TimestampSource = platformPerformance === undefined
   ? dateTimestampSource
