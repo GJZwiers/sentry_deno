@@ -7,8 +7,6 @@
 
 import { Integration } from "../../types/src/index.ts";
 
-import { isNodeEnv } from "./node.ts";
-
 /** Internal */
 interface SentryGlobal {
   Sentry?: {
@@ -35,7 +33,7 @@ const fallbackGlobalObject = {};
  */
 export function getGlobalObject<T>(): T & SentryGlobal {
   return (
-    isNodeEnv() ? global : typeof window !== "undefined" // eslint-disable-line no-restricted-globals
+     typeof window !== "undefined" // eslint-disable-line no-restricted-globals
       ? window // eslint-disable-line no-restricted-globals
       : typeof self !== "undefined"
       ? self
