@@ -26,3 +26,5 @@ async function testEvent() {
 
 await testEvent();
 ```
+
+Note: Some code in this repository may not yet pass type-checking. Running this module with `deno run --check` may not always succeed.

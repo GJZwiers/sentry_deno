@@ -113,7 +113,7 @@ export function isEvent(wat: unknown): wat is PolymorphicEvent {
  * @returns A boolean representing the result.
  */
 export function isElement(wat: unknown): boolean {
-  return typeof Element !== "undefined" && isInstanceOf(wat, Element);
+  return false;
 }
 
 /**
