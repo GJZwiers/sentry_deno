@@ -86,43 +86,7 @@ export function isNativeFetch(func: Function): boolean {
  * @returns true if `window.fetch` is natively implemented, false otherwise
  */
 export function supportsNativeFetch(): boolean {
-  if (!supportsFetch()) {
-    return false;
-  }
-
-  const global = getGlobalObject<Window>();
-
-  // Fast path to avoid DOM I/O
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  if (isNativeFetch(global.fetch)) {
-    return true;
-  }
-
-  // window.fetch is implemented, but is polyfilled or already wrapped (e.g: by a chrome extension)
-  // so create a "pure" iframe to see if that has native fetch
-  let result = false;
-  const doc = global.document;
-  // eslint-disable-next-line deprecation/deprecation
-  if (doc && typeof (doc.createElement as unknown) === "function") {
-    try {
-      const sandbox = doc.createElement("iframe");
-      sandbox.hidden = true;
-      doc.head.appendChild(sandbox);
-      if (sandbox.contentWindow && sandbox.contentWindow.fetch) {
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        result = isNativeFetch(sandbox.contentWindow.fetch);
-      }
-      doc.head.removeChild(sandbox);
-    } catch (err) {
-      __DEBUG_BUILD__ &&
-        logger.warn(
-          "Could not create sandbox iframe for pure fetch check, bailing to window.fetch: ",
-          err,
-        );
-    }
-  }
-
-  return result;
+  return true;
 }
 
 /**
@@ -168,17 +132,18 @@ export function supportsReferrerPolicy(): boolean {
  * @returns Answer to the given question.
  */
 export function supportsHistory(): boolean {
+  return false;
   // NOTE: in Chrome App environment, touching history.pushState, *even inside
   //       a try/catch block*, will cause Chrome to output an error to console.error
   // borrowed from: https://github.com/angular/angular.js/pull/13945/files
-  const global = getGlobalObject<Window>();
-  /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const chrome = (global as any).chrome;
-  const isChromePackagedApp = chrome && chrome.app && chrome.app.runtime;
-  /* eslint-enable @typescript-eslint/no-unsafe-member-access */
-  const hasHistoryApi = "history" in global && !!global.history.pushState &&
-    !!global.history.replaceState;
+  // const global = getGlobalObject<Window>();
+  // /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+  // // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // const chrome = (global as any).chrome;
+  // const isChromePackagedApp = chrome && chrome.app && chrome.app.runtime;
+  // /* eslint-enable @typescript-eslint/no-unsafe-member-access */
+  // const hasHistoryApi = "history" in global && !!global.history.pushState &&
+  //   !!global.history.replaceState;
 
-  return !isChromePackagedApp && hasHistoryApi;
+  // return !isChromePackagedApp && hasHistoryApi;
 }

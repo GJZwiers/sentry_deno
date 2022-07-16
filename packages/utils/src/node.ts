@@ -3,7 +3,6 @@
  * you must either a) use `console.log` rather than the logger, or b) put your function elsewhere.
  */
 
-import { isBrowserBundle } from "./env.ts";
 
 /**
  * Checks whether we're in the Node.js or Browser environment
@@ -13,12 +12,7 @@ import { isBrowserBundle } from "./env.ts";
 export function isNodeEnv(): boolean {
   // explicitly check for browser bundles as those can be optimized statically
   // by terser/rollup.
-  return (
-    !isBrowserBundle() &&
-    Object.prototype.toString.call(
-        typeof process !== "undefined" ? process : 0,
-      ) === "[object process]"
-  );
+  return false;
 }
 
 /**

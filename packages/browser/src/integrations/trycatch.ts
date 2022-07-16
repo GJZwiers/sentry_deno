@@ -200,6 +200,7 @@ function _wrapXHR(originalSend: () => void): () => void {
   };
 }
 
+
 /** JSDoc */
 function _wrapEventTarget(target: string): void {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -214,7 +215,7 @@ function _wrapEventTarget(target: string): void {
     return;
   }
 
-  fill(proto, "addEventListener", function (original: () => void): (
+  fill(proto, "addEventListener", function (original: () => (eventName: string, fn: EventListenerObject, capture?: boolean | undefined, secure?: boolean | undefined) => void): (
     eventName: string,
     fn: EventListenerObject,
     options?: boolean | AddEventListenerOptions,
@@ -255,22 +256,29 @@ function _wrapEventTarget(target: string): void {
         // can sometimes get 'Permission denied to access property "handle Event'
       }
 
-      return original.apply(this, [
-        eventName,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        wrap(fn as any as WrappedFunction, {
-          mechanism: {
-            data: {
-              function: "addEventListener",
-              handler: getFunctionName(fn),
-              target,
-            },
-            handled: true,
-            type: "instrument",
+      const wrapp = wrap(fn as any as WrappedFunction, {
+        mechanism: {
+          data: {
+            function: "addEventListener",
+            handler: getFunctionName(fn),
+            target,
           },
-        }),
+          handled: true,
+          type: "instrument",
+        },
+      })
+
+      /* 
+      Argument of type '[string, any, boolean | AddEventListenerOptions | undefined]' is not assignable to parameter of type '[]'.
+      Source has 3 element(s) but target allows only 0.
+      */
+      const applyArgs: any = [
+        eventName,
+        wrapp,
         options,
-      ]);
+      ]
+
+      return original.apply(this, applyArgs);
     };
   });
 
