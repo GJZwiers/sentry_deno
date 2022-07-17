@@ -4,7 +4,6 @@ import { WrappedFunction } from "../../types/src/index.ts";
 import { getGlobalObject, getGlobalSingleton } from "./global.ts";
 
 // TODO: Implement different loggers for different environments
-const global = getGlobalObject<Window | NodeJS.Global>();
 
 /** Prefix for logging strings */
 const PREFIX = "Sentry Logger ";
@@ -41,7 +40,7 @@ export function consoleSandbox<T>(callback: () => T): T {
     return callback();
   }
 
-  const originalConsole = global.console as Console & Record<string, unknown>;
+  const originalConsole = console as Console & Record<string, unknown>;
   const wrappedLevels: Partial<LoggerConsoleMethods> = {};
 
   // Restore all wrapped console methods
@@ -49,7 +48,7 @@ export function consoleSandbox<T>(callback: () => T): T {
     // TODO(v7): Remove this check as it's only needed for Node 6
     const originalWrappedFunc = originalConsole[level] &&
       (originalConsole[level] as WrappedFunction).__sentry_original__;
-    if (level in global.console && originalWrappedFunc) {
+    if (level in console && originalWrappedFunc) {
       wrappedLevels[level] =
         originalConsole[level] as LoggerConsoleMethods[typeof level];
       originalConsole[level] = originalWrappedFunc as Console[typeof level];
@@ -84,7 +83,8 @@ function makeLogger(): Logger {
       logger[name] = (...args: any[]) => {
         if (enabled) {
           consoleSandbox(() => {
-            global.console[name](`${PREFIX}[${name}]:`, ...args);
+            // @ts-ignore string is ok here
+            console[name](`${PREFIX}[${name}]:`, ...args);
           });
         }
       };

@@ -11,7 +11,6 @@ import {
   addExceptionMechanism,
   addExceptionTypeValue,
   extractExceptionKeysForMessage,
-  isDOMError,
   isDOMException,
   isError,
   isErrorEvent,
@@ -233,7 +232,6 @@ export function eventFromUnknownInput(
   // https://developer.mozilla.org/en-US/docs/Web/API/DOMException
   // https://webidl.spec.whatwg.org/#es-DOMException-specialness
   if (
-    isDOMError(exception as DOMError) ||
     isDOMException(exception as DOMException)
   ) {
     const domException = exception as DOMException;
@@ -241,8 +239,7 @@ export function eventFromUnknownInput(
     if ("stack" in (exception as Error)) {
       event = eventFromError(stackParser, exception as Error);
     } else {
-      const name = domException.name ||
-        (isDOMError(domException) ? "DOMError" : "DOMException");
+      const name = domException.name || "DOMException";
       const message = domException.message
         ? `${name}: ${domException.message}`
         : name;

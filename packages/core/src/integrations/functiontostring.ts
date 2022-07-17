@@ -28,7 +28,8 @@ export class FunctionToString implements Integration {
       ...args: any[]
     ): string {
       const context = getOriginalFunction(this) || this;
-      return originalFunctionToString.apply(context, args);
+      // @ts-ignore toString.apply will return a string not void
+      return originalFunctionToString.apply(context, args as any);
     };
   }
 }

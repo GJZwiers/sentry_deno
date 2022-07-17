@@ -41,6 +41,7 @@ export const observe = (type: string, callback: PerformanceEntryHandler): Perfor
       return po;
     }
   } catch (e) {
+    console.error(e);
     // Do nothing.
   }
   return;

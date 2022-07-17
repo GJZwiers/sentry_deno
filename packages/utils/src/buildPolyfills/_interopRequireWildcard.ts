@@ -1,4 +1,4 @@
-import { RequireResult } from './types';
+import { RequireResult } from './types.ts';
 
 /**
  * Adds a `default` property to CJS modules which aren't the result of transpilation from ESM modules.

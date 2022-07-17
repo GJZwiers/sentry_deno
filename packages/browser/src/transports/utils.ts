@@ -57,12 +57,13 @@ export function getNativeFetchImplementation(): FetchImpl {
   /* eslint-disable @typescript-eslint/unbound-method */
 
   // Fast path to avoid DOM I/O
-  if (isNativeFetch(global.fetch)) {
-    return (cachedFetchImpl = global.fetch.bind(global));
+  if (isNativeFetch(fetch)) {
+    return (cachedFetchImpl = fetch.bind(global));
   }
 
+  // @ts-ignore no document in deno
   const document = global.document;
-  let fetchImpl = global.fetch;
+  let fetchImpl = fetch;
   // eslint-disable-next-line deprecation/deprecation
   if (document && typeof document.createElement === "function") {
     try {
@@ -95,14 +96,16 @@ export function getNativeFetchImplementation(): FetchImpl {
  */
 export function sendReport(url: string, body: string | Uint8Array): void {
   const isRealNavigator =
-    Object.prototype.toString.call(global && global.navigator) ===
-      "[object Navigator]";
+    Object.prototype.toString.call(global && navigator) ===
+      "[object Navigator]"; 
   const hasSendBeacon = isRealNavigator &&
-    typeof global.navigator.sendBeacon === "function";
+  // @ts-ignore no sendBeacon in deno
+    typeof navigator.sendBeacon === "function";
 
   if (hasSendBeacon) {
     // Prevent illegal invocations - https://xgwang.me/posts/you-may-not-know-beacon/#it-may-throw-error%2C-be-sure-to-catch
-    const sendBeacon = global.navigator.sendBeacon.bind(global.navigator);
+    // @ts-ignore no sendBeacon in deno
+    const sendBeacon = navigator.sendBeacon.bind(navigator);
     sendBeacon(url, body);
   } else if (supportsFetch()) {
     const fetch = getNativeFetchImplementation();

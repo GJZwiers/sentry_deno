@@ -26,15 +26,17 @@ export class HttpContext implements Integration {
     addGlobalEventProcessor((event: Event) => {
       if (getCurrentHub().getIntegration(HttpContext)) {
         // if none of the information we want exists, don't bother
-        if (!global.navigator && !global.location && !global.document) {
+        // @ts-ignore no document in deno
+        if (!navigator && !location && !global.document) {
           return event;
         }
 
         // grab as much info as exists and add it to the event
         const url = (event.request && event.request.url) ||
-          (global.location && global.location.href);
+          (location && location.href);
+        // @ts-ignore no document in deno
         const { referrer } = global.document || {};
-        const { userAgent } = global.navigator || {};
+        const { userAgent } = navigator || {};
 
         const headers = {
           ...(event.request && event.request.headers),

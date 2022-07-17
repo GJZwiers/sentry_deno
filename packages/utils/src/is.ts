@@ -40,17 +40,6 @@ export function isErrorEvent(wat: unknown): boolean {
 }
 
 /**
- * Checks whether given value's type is DOMError
- * {@link isDOMError}.
- *
- * @param wat A value to be checked.
- * @returns A boolean representing the result.
- */
-export function isDOMError(wat: unknown): boolean {
-  return isBuiltin(wat, "DOMError");
-}
-
-/**
  * Checks whether given value's type is DOMException
  * {@link isDOMException}.
  *

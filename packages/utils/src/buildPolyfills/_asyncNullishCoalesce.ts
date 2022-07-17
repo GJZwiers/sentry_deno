@@ -1,6 +1,6 @@
 // adapted from Sucrase (https://github.com/alangpierce/sucrase)
 
-import { _nullishCoalesce } from './_nullishCoalesce';
+import { _nullishCoalesce } from './_nullishCoalesce.ts';
 
 /**
  * Polyfill for the nullish coalescing operator (`??`), when used in situations where at least one of the values is the
@@ -15,7 +15,7 @@ import { _nullishCoalesce } from './_nullishCoalesce';
  * @param rhsFn A function returning the value of the expression to the right of the `??`
  * @returns The LHS value, unless it's `null` or `undefined`, in which case, the RHS value
  */
-// eslint-disable-next-line @sentry-internal/sdk/no-async-await
+// deno-lint-ignore require-await
 export async function _asyncNullishCoalesce(lhs: unknown, rhsFn: () => unknown): Promise<unknown> {
   return _nullishCoalesce(lhs, rhsFn);
 }

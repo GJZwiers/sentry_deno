@@ -6,16 +6,8 @@ import {
   StackFrame,
 } from "../../types/src/index.ts";
 
-import { getGlobalObject } from "./global.ts";
 import { addNonEnumerableProperty } from "./object.ts";
 import { snipLine } from "./string.ts";
-
-/**
- * Extended Window interface that allows for Crypto API usage in IE browsers
- */
-interface MsCryptoWindow extends Window {
-  msCrypto?: Crypto;
-}
 
 /**
  * UUID4 generator
@@ -23,9 +15,6 @@ interface MsCryptoWindow extends Window {
  * @returns string Generated UUID4.
  */
 export function uuid4(): string {
-  const global = getGlobalObject() as MsCryptoWindow;
-  const crypto = global.crypto || global.msCrypto;
-
   if (!(crypto === void 0) && crypto.getRandomValues) {
     // Use window.crypto API if available
     const arr = new Uint16Array(8);

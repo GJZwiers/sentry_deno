@@ -1,4 +1,4 @@
-import { GenericFunction } from './types';
+import { GenericFunction } from './types.ts';
 
 /**
  * Polyfill for the optional chain operator, `?.`, given previous conversion of the expression into an array of values,

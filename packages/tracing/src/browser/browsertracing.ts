@@ -225,7 +225,6 @@ export class BrowserTracing implements Integration {
     __DEBUG_BUILD__ && logger.log(`[Tracing] Starting ${finalContext.op} transaction on scope`);
 
     const hub = this._getCurrentHub();
-    const { location } = getGlobalObject() as WindowOrWorkerGlobalScope & { location: Location };
 
     const idleTransaction = startIdleTransaction(
       hub,
@@ -274,7 +273,9 @@ export function getMetaContent(metaName: string): string | null {
   const globalObject = getGlobalObject<Window>();
 
   // DOM/querySelector is not available in all environments
+  // @ts-ignore no document in deno
   if (globalObject.document && globalObject.document.querySelector) {
+      // @ts-ignore no document in deno
     const el = globalObject.document.querySelector(`meta[name=${metaName}]`);
     return el ? el.getAttribute('content') : null;
   } else {
