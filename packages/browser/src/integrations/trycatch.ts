@@ -158,6 +158,7 @@ function _wrapRAF(original: any): (callback: () => void) => any {
 /** JSDoc */
 function _wrapXHR(originalSend: () => void): () => void {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // @ts-ignore no xhr in deno
   return function (this: XMLHttpRequest, ...args: any[]): void {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const xhr = this;
@@ -287,7 +288,11 @@ function _wrapEventTarget(target: string): void {
     proto,
     "removeEventListener",
     function (
-      originalRemoveEventListener: () => void,
+      originalRemoveEventListener: (
+        this: any,
+        eventName: string,
+        fn: WrappedFunction,
+        options?: boolean | EventListenerOptions) => () => void,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ): (
       this: any,

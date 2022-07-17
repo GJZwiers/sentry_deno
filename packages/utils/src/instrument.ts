@@ -252,8 +252,8 @@ let _oldOnErrorHandler: OnErrorEventHandler = null;
 function instrumentError(): void {
   _oldOnErrorHandler = global.onerror;
 
-  // @ts-ignore 
-  globalThis.onerror = function (
+  // @ts-ignore assignment is ok
+  global.onerror = function (
     msg: any,
     url: any,
     line: any,
@@ -270,6 +270,7 @@ function instrumentError(): void {
 
     if (_oldOnErrorHandler) {
       // eslint-disable-next-line prefer-rest-params
+      // @ts-ignore ok
       return _oldOnErrorHandler.apply(this, arguments);
     }
 
@@ -287,6 +288,7 @@ function instrumentUnhandledRejection(): void {
 
     if (_oldOnUnhandledRejectionHandler) {
       // eslint-disable-next-line prefer-rest-params
+      // @ts-ignore will return boolean not void
       return _oldOnUnhandledRejectionHandler.apply(this, arguments);
     }
 

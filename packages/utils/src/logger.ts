@@ -83,6 +83,7 @@ function makeLogger(): Logger {
       logger[name] = (...args: any[]) => {
         if (enabled) {
           consoleSandbox(() => {
+            // @ts-ignore string is ok here
             console[name](`${PREFIX}[${name}]:`, ...args);
           });
         }
