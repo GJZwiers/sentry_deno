@@ -147,6 +147,7 @@ export function showReportDialog(
 ): void {
   // doesn't work without a document (React Native)
   const global = getGlobalObject<Window>();
+  // @ts-ignore no document in deno
   if (!global.document) {
     __DEBUG_BUILD__ &&
       logger.error("Global document not defined in showReportDialog call");
@@ -172,6 +173,7 @@ export function showReportDialog(
     options.eventId = hub.lastEventId();
   }
 
+  // @ts-ignore no document in deno
   const script = global.document.createElement("script");
   script.async = true;
   script.src = getReportDialogEndpoint(dsn, options);
@@ -181,6 +183,7 @@ export function showReportDialog(
     script.onload = options.onLoad;
   }
 
+  // @ts-ignore no document in deno
   const injectionPoint = global.document.head || global.document.body;
   if (injectionPoint) {
     injectionPoint.appendChild(script);
@@ -274,6 +277,7 @@ function startSessionOnHub(hub: Hub): void {
  */
 function startSessionTracking(): void {
   const window = getGlobalObject<Window>();
+  // @ts-ignore no document in deno
   const document = window.document;
 
   if (typeof document === "undefined") {

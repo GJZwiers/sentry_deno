@@ -1,4 +1,4 @@
-import { RequireResult } from './types';
+import { RequireResult } from './types.ts';
 
 /**
  * Unwraps a module if it has been wrapped in an object under the key `default`.

@@ -104,6 +104,7 @@ export class TryCatch implements Integration {
     }
 
     if (this._options.XMLHttpRequest && "XMLHttpRequest" in global) {
+      // @ts-ignore no XHR in deno
       fill(XMLHttpRequest.prototype, "send", _wrapXHR);
     }
 
@@ -118,7 +119,7 @@ export class TryCatch implements Integration {
 }
 
 /** JSDoc */
-function _wrapTimeFunction(original: () => void): () => number {
+function _wrapTimeFunction(original: () => number): () => number {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return function (this: any, ...args: any[]): number {
     const originalCallback = args[0];
@@ -129,7 +130,7 @@ function _wrapTimeFunction(original: () => void): () => number {
         type: "instrument",
       },
     });
-    return original.apply(this, args);
+    return original.apply(this, args as any);
   };
 }
 
@@ -196,7 +197,7 @@ function _wrapXHR(originalSend: () => void): () => void {
       }
     });
 
-    return originalSend.apply(this, args);
+    return originalSend.apply(this, args as any);
   };
 }
 

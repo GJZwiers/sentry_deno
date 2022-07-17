@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { getGlobalObject } from '../../../../../utils/src/index.ts';
 
 import { onHidden } from './onHidden.ts';
 

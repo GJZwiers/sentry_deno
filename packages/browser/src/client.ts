@@ -88,8 +88,11 @@ export class BrowserClient extends BaseClient<BrowserClientOptions> {
 
     super(options);
 
+    // @ts-ignore no document in deno
     if (options.sendClientReports && globalObject.document) {
+      // @ts-ignore no document in deno
       globalObject.document.addEventListener("visibilitychange", () => {
+        // @ts-ignore no document in deno
         if (globalObject.document.visibilityState === "hidden") {
           this._flushOutcomes();
         }

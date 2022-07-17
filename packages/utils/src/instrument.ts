@@ -116,12 +116,14 @@ function instrumentConsole(): void {
       console,
       level,
       function (originalConsoleMethod: () => any): Function {
+        // parameter list
+        // empty tuple type
         return function (...args: any[]): void {
           triggerHandlers("console", { args, level });
 
           // this fails for some browsers. :(
           if (originalConsoleMethod) {
-            originalConsoleMethod.apply(console, args);
+            originalConsoleMethod.apply(console, args as any);
           }
         };
       },
@@ -135,8 +137,8 @@ function instrumentFetch(): void {
     return;
   }
 
-  fill(global, "fetch", function (originalFetch: () => void): () => void {
-    return function (...args: any[]): void {
+  fill(global, "fetch", function (originalFetch: () => Promise<Response>): () => void {
+    return function (...args: any[]): Promise<Response> {
       const handlerData = {
         args,
         fetchData: {
@@ -151,7 +153,8 @@ function instrumentFetch(): void {
       });
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      return originalFetch.apply(global, args).then(
+      
+      return originalFetch.apply(global, args as any).then(
         (response: Response) => {
           triggerHandlers("fetch", {
             ...handlerData,
@@ -249,8 +252,8 @@ let _oldOnErrorHandler: OnErrorEventHandler = null;
 function instrumentError(): void {
   _oldOnErrorHandler = global.onerror;
 
-
-  window.onerror = function (
+  // @ts-ignore 
+  globalThis.onerror = function (
     msg: any,
     url: any,
     line: any,
@@ -274,7 +277,20 @@ function instrumentError(): void {
   };
 }
 
+let _oldOnUnhandledRejectionHandler: ((e: any) => void) | null = null;
 /** JSDoc */
 function instrumentUnhandledRejection(): void {
-  console.warn("window.onunhandledrejection not implemented.");
+  _oldOnUnhandledRejectionHandler = global.onunhandledrejection;
+
+  global.onunhandledrejection = function (e: any): boolean {
+    triggerHandlers("unhandledrejection", e);
+
+    if (_oldOnUnhandledRejectionHandler) {
+      // eslint-disable-next-line prefer-rest-params
+      return _oldOnUnhandledRejectionHandler.apply(this, arguments);
+    }
+
+    return true;
+  };
+  // console.warn("window.onunhandledrejection not implemented.");
 }

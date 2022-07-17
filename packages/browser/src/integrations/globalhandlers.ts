@@ -70,7 +70,7 @@ export class GlobalHandlers implements Integration {
    * @inheritDoc
    */
   public setupOnce(): void {
-    Error.stackTraceLimit = 50;
+    // Error.stackTraceLimit = 50;
     const options = this._options;
 
     // We can disable guard-for-in as we construct the options object above + do checks against

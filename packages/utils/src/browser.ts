@@ -120,9 +120,8 @@ function _htmlElementAsString(el: unknown, keyAttrs?: string[]): string {
  * A safe form of location.href
  */
 export function getLocationHref(): string {
-  const global = getGlobalObject<Window>();
   try {
-    return global.document.location.href;
+    return location.href;
   } catch (oO) {
     return "";
   }

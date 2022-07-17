@@ -1,4 +1,4 @@
-import { _asyncOptionalChain } from './_asyncOptionalChain';
+import { _asyncOptionalChain } from './_asyncOptionalChain.ts';
 
 /**
  * Polyfill for the optional chain operator, `?.`, given previous conversion of the expression into an array of values,

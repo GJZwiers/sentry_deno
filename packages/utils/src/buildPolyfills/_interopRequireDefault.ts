@@ -1,4 +1,4 @@
-import { RequireResult } from './types';
+import { RequireResult } from './types.ts';
 
 /**
  * Wraps modules which aren't the result of transpiling an ESM module in an object under the key `default`

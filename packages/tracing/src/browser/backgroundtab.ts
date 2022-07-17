@@ -12,9 +12,12 @@ const global = getGlobalObject<Window>();
  * document is hidden.
  */
 export function registerBackgroundTabDetection(): void {
+  // @ts-ignore no document in deno
   if (global && global.document) {
+    // @ts-ignore no document in deno
     global.document.addEventListener('visibilitychange', () => {
       const activeTransaction = getActiveTransaction() as IdleTransaction;
+      // @ts-ignore no document in deno
       if (global.document.hidden && activeTransaction) {
         const statusType: SpanStatusType = 'cancelled';
 
