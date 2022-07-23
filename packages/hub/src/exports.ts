@@ -193,6 +193,9 @@ export function withScope(
  * The transaction must be finished with a call to its `.finish()` method, at which point the transaction with all its
  * finished child spans will be sent to Sentry.
  *
+ * NOTE: This function should only be used for *manual* instrumentation. Auto-instrumentation should call
+ * `startTransaction` directly on the hub.
+ *
  * @param context Properties of the new `Transaction`.
  * @param customSamplingContext Information given to the transaction sampling function (along with context-dependent
  * default values). See {@link Options.tracesSampler}.
@@ -202,9 +205,12 @@ export function withScope(
 export function startTransaction(
   context: TransactionContext,
   customSamplingContext?: CustomSamplingContext,
-): ReturnType<Hub["startTransaction"]> {
+): ReturnType<Hub['startTransaction']> {
   return getCurrentHub().startTransaction(
-    { ...context },
+    {
+      metadata: { source: 'custom' },
+      ...context,
+    },
     customSamplingContext,
   );
 }

@@ -16,7 +16,6 @@ export type DynamicSamplingContext = {
   release?: string;
   environment?: string;
   transaction?: string;
-  user_id?: string;
   user_segment?: string;
 };
 

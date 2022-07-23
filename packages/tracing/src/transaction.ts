@@ -16,14 +16,14 @@ import { Span as SpanClass, SpanRecorder } from './span.ts';
 
 /** JSDoc */
 export class Transaction extends SpanClass implements TransactionInterface {
-  public name: string;
-
   public metadata: TransactionMetadata;
 
   /**
    * The reference to the current hub.
    */
   public readonly _hub: Hub;
+
+  private _name: string;
 
   private _measurements: Measurements = {};
 
@@ -41,7 +41,7 @@ export class Transaction extends SpanClass implements TransactionInterface {
 
     this._hub = hub || getCurrentHub();
 
-    this.name = transactionContext.name || '';
+    this._name = transactionContext.name || '';
 
     this.metadata = transactionContext.metadata || {};
     this._trimEnd = transactionContext.trimEnd;
@@ -50,11 +50,23 @@ export class Transaction extends SpanClass implements TransactionInterface {
     this.transaction = this;
   }
 
+  /** Getter for `name` property */
+  public get name(): string {
+    return this._name;
+  }
+
+  /** Setter for `name` property, which also sets `source` */
+  public set name(newName: string) {
+    this._name = newName;
+    this.metadata.source = 'custom';
+  }
+
   /**
    * JSDoc
    */
-  public setName(name: string): void {
+  public setName(name: string, source: TransactionMetadata['source'] = 'custom'): void {
     this.name = name;
+    this.metadata.source = source;
   }
 
   /**
@@ -76,8 +88,7 @@ export class Transaction extends SpanClass implements TransactionInterface {
   }
 
   /**
-   * Set metadata for this transaction.
-   * @hidden
+   * @inheritDoc
    */
   public setMetadata(newMetadata: TransactionMetadata): void {
     this.metadata = { ...this.metadata, ...newMetadata };
@@ -123,6 +134,8 @@ export class Transaction extends SpanClass implements TransactionInterface {
       }).endTimestamp;
     }
 
+    const metadata = this.metadata;
+
     const transaction: Event = {
       contexts: {
         trace: this.getTraceContext(),
@@ -134,9 +147,14 @@ export class Transaction extends SpanClass implements TransactionInterface {
       transaction: this.name,
       type: 'transaction',
       sdkProcessingMetadata: {
-        ...this.metadata,
+        ...metadata,
         baggage: this.getBaggage(),
       },
+      ...(metadata.source && {
+        transaction_info: {
+          source: metadata.source,
+        },
+      }),
     };
 
     const hasMeasurements = Object.keys(this._measurements).length > 0;
@@ -231,14 +249,16 @@ export class Transaction extends SpanClass implements TransactionInterface {
         : undefined;
 
     const scope = hub.getScope();
-    const { id: user_id, segment: user_segment } = (scope && scope.getUser()) || {};
+    const { segment: user_segment } = (scope && scope.getUser()) || {};
+
+    const source = this.metadata.source;
+    const transaction = source && source !== 'url' ? this.name : undefined;
 
     return createBaggage(
       dropUndefinedKeys({
         environment,
         release,
-        transaction: this.name,
-        user_id,
+        transaction,
         user_segment,
         public_key,
         trace_id: this.traceId,

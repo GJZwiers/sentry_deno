@@ -1,5 +1,5 @@
-import { DsnComponents, DsnLike } from "../../types/src/index.ts";
-import { dsnToString, makeDsn, urlEncode } from "../../utils/src/index.ts";
+import { ClientOptions, DsnComponents, DsnLike, SdkInfo } from '../../types/src/index.ts';
+import { dsnToString, makeDsn, urlEncode } from '../../utils/src/index.ts';
 
 const SENTRY_API_VERSION = "7";
 
@@ -18,12 +18,13 @@ function _getIngestEndpoint(dsn: DsnComponents): string {
 }
 
 /** Returns a URL-encoded string with auth config suitable for a query string. */
-function _encodedAuth(dsn: DsnComponents): string {
+function _encodedAuth(dsn: DsnComponents, sdkInfo: SdkInfo | undefined): string {
   return urlEncode({
     // We send only the minimum set of required information. See
     // https://github.com/getsentry/sentry-javascript/issues/2572.
     sentry_key: dsn.publicKey,
     sentry_version: SENTRY_API_VERSION,
+    ...(sdkInfo && { sentry_client: `${sdkInfo.name}/${sdkInfo.version}` }),
   });
 }
 
@@ -34,9 +35,19 @@ function _encodedAuth(dsn: DsnComponents): string {
  */
 export function getEnvelopeEndpointWithUrlEncodedAuth(
   dsn: DsnComponents,
-  tunnel?: string,
+  // TODO (v8): Remove `tunnelOrOptions` in favor of `options`, and use the substitute code below
+  // options: ClientOptions = {} as ClientOptions,
+  tunnelOrOptions: string | ClientOptions = {} as ClientOptions,
 ): string {
-  return tunnel ? tunnel : `${_getIngestEndpoint(dsn)}?${_encodedAuth(dsn)}`;
+  // TODO (v8): Use this code instead
+  // const { tunnel, _metadata = {} } = options;
+  // return tunnel ? tunnel : `${_getIngestEndpoint(dsn)}?${_encodedAuth(dsn, _metadata.sdk)}`;
+
+  const tunnel = typeof tunnelOrOptions === 'string' ? tunnelOrOptions : tunnelOrOptions.tunnel;
+  const sdkInfo =
+    typeof tunnelOrOptions === 'string' || !tunnelOrOptions._metadata ? undefined : tunnelOrOptions._metadata.sdk;
+
+  return tunnel ? tunnel : `${_getIngestEndpoint(dsn)}?${_encodedAuth(dsn, sdkInfo)}`;
 }
 
 /** Returns the url to the report dialog endpoint. */

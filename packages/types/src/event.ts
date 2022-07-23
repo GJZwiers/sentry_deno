@@ -1,17 +1,18 @@
-import { Attachment } from "./attachment.ts";
-import { Breadcrumb } from "./breadcrumb.ts";
-import { Contexts } from "./context.ts";
-import { DebugMeta } from "./debugMeta.ts";
-import { Exception } from "./exception.ts";
-import { Extras } from "./extra.ts";
-import { Measurements } from "./measurement.ts";
-import { Primitive } from "./misc.ts";
-import { Request } from "./request.ts";
-import { CaptureContext } from "./scope.ts";
-import { SdkInfo } from "./sdkinfo.ts";
-import { Severity, SeverityLevel } from "./severity.ts";
-import { Span } from "./span.ts";
-import { User } from "./user.ts";
+import { Attachment } from './attachment.ts';
+import { Breadcrumb } from './breadcrumb.ts';
+import { Contexts } from './context.ts';
+import { DebugMeta } from './debugMeta.ts';
+import { Exception } from './exception.ts';
+import { Extras } from './extra.ts';
+import { Measurements } from './measurement.ts';
+import { Primitive } from './misc.ts';
+import { Request } from './request.ts';
+import { CaptureContext } from './scope.ts';
+import { SdkInfo } from './sdkinfo.ts';
+import { Severity, SeverityLevel } from './severity.ts';
+import { Span } from './span.ts';
+import { TransactionSource } from './transaction.ts';
+import { User } from './user.ts';
 
 /** JSDoc */
 export interface Event {
@@ -44,8 +45,11 @@ export interface Event {
   spans?: Span[];
   measurements?: Measurements;
   debug_meta?: DebugMeta;
-  // A place to stash data which is needed at some point in the SDK's event processing pipeline but which shouldn't get sent to Sentry
+  // A place to stash data which is needed at some point in the SDK's event processing pipeline but which shouldn.ts't get sent to Sentry
   sdkProcessingMetadata?: { [key: string]: any };
+  transaction_info?: {
+    source: TransactionSource;
+  };
 }
 
 /** JSDoc */

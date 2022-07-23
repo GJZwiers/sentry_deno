@@ -209,6 +209,12 @@ export class BrowserTracing implements Integration {
     const expandedContext = {
       ...context,
       ...parentContextFromHeader,
+      ...(parentContextFromHeader && {
+        metadata: {
+          ...context.metadata,
+          ...parentContextFromHeader.metadata,
+        },
+      }),
       trimEnd: true,
     };
     const modifiedContext = typeof beforeNavigate === 'function' ? beforeNavigate(expandedContext) : expandedContext;
@@ -216,6 +222,12 @@ export class BrowserTracing implements Integration {
     // For backwards compatibility reasons, beforeNavigate can return undefined to "drop" the transaction (prevent it
     // from being sent to Sentry).
     const finalContext = modifiedContext === undefined ? { ...expandedContext, sampled: false } : modifiedContext;
+
+    // If `beforeNavigate` set a custom name, record that fact
+    finalContext.metadata =
+      finalContext.name !== expandedContext.name
+        ? { ...finalContext.metadata, source: 'custom' }
+        : finalContext.metadata;
 
     if (finalContext.sampled === false) {
       __DEBUG_BUILD__ &&
