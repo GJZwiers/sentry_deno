@@ -106,8 +106,8 @@ function _domBreadcrumb(
     // Accessing event.target can throw (see getsentry/raven-js#838, #768)
     try {
       target = handlerData.event.target
-        ? htmlTreeAsString(handlerData.event.target as Node, keyAttrs)
-        : htmlTreeAsString(handlerData.event as unknown as Node, keyAttrs);
+        ? htmlTreeAsString(handlerData.event.target, keyAttrs)
+        : htmlTreeAsString(handlerData.event, keyAttrs);
     } catch (e) {
       target = "<unknown>";
     }

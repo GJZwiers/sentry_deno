@@ -37,7 +37,7 @@ export function dsnToString(
  * @param str A Dsn as string
  * @returns Dsn as DsnComponents
  */
-function dsnFromString(str: string): DsnComponents {
+export function dsnFromString(str: string): DsnComponents {
   const match = DSN_REGEX.exec(str);
 
   if (!match) {
@@ -126,27 +126,4 @@ export function makeDsn(from: DsnLike): DsnComponents {
     : dsnFromComponents(from);
   validateDsn(components);
   return components;
-}
-
-/**
- * Changes a Dsn to point to the `relay` server running in the Lambda Extension.
- *
- * This is only used by the serverless integration for AWS Lambda.
- *
- * @param originalDsn The original Dsn of the customer.
- * @returns Dsn pointing to Lambda extension.
- */
-export function extensionRelayDSN(
-  originalDsn: string | undefined,
-): string | undefined {
-  if (originalDsn === undefined) {
-    return undefined;
-  }
-
-  const dsn = dsnFromString(originalDsn);
-  dsn.host = "localhost";
-  dsn.port = "3000";
-  dsn.protocol = "http";
-
-  return dsnToString(dsn);
 }

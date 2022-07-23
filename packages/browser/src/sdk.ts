@@ -13,7 +13,6 @@ import {
   logger,
   resolvedSyncPromise,
   stackParserFromStackParserOptions,
-  supportsFetch,
 } from "../../utils/src/index.ts";
 
 import {
@@ -31,7 +30,7 @@ import {
   TryCatch,
 } from "./integrations/index.ts";
 import { defaultStackParser } from "./stack-parsers.ts";
-import { makeFetchTransport, makeXHRTransport } from "./transports/index.ts";
+import { makeFetchTransport } from "./transports/index.ts";
 
 export const defaultIntegrations = [
   new CoreIntegrations.InboundFilters(),
@@ -125,8 +124,7 @@ export function init(options: BrowserOptions = {}): void {
       options.stackParser || defaultStackParser,
     ),
     integrations: getIntegrationsToSetup(options),
-    transport: options.transport ||
-      (supportsFetch() ? makeFetchTransport : makeXHRTransport),
+    transport: options.transport || makeFetchTransport,
   };
 
   initAndBind(BrowserClient, clientOptions);

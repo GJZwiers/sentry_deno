@@ -46,7 +46,7 @@ export {
 } from "../../core/src/index.ts";
 
 export { BrowserClient } from "./client.ts";
-export { makeFetchTransport, makeXHRTransport } from "./transports/index.ts";
+export { makeFetchTransport } from "./transports/index.ts";
 export {
   chromeStackLineParser,
   defaultStackLineParsers,

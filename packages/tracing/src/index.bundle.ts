@@ -34,7 +34,6 @@ export {
   setUser,
   startTransaction,
   makeFetchTransport,
-  makeXHRTransport,
   withScope,
 } from '../../browser/src/index.ts';
 

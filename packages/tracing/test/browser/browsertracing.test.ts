@@ -216,6 +216,39 @@ describe('BrowserTracing', () => {
 
         expect(mockBeforeNavigation).toHaveBeenCalledTimes(1);
       });
+
+      it("sets transaction name source to `'custom'` if name is changed", () => {
+        const mockBeforeNavigation = jest.fn(ctx => ({
+          ...ctx,
+          name: 'newName',
+        }));
+        createBrowserTracing(true, {
+          beforeNavigate: mockBeforeNavigation,
+          routingInstrumentation: customInstrumentRouting,
+        });
+        const transaction = getActiveTransaction(hub) as IdleTransaction;
+        expect(transaction).toBeDefined();
+        expect(transaction.name).toBe('newName');
+        expect(transaction.metadata.source).toBe('custom');
+
+        expect(mockBeforeNavigation).toHaveBeenCalledTimes(1);
+      });
+
+      it("doesn't set transaction name source if name is not changed", () => {
+        const mockBeforeNavigation = jest.fn(ctx => ({
+          ...ctx,
+        }));
+        createBrowserTracing(true, {
+          beforeNavigate: mockBeforeNavigation,
+          routingInstrumentation: customInstrumentRouting,
+        });
+        const transaction = getActiveTransaction(hub) as IdleTransaction;
+        expect(transaction).toBeDefined();
+        expect(transaction.name).toBe('a/path');
+        expect(transaction.metadata.source).toBeUndefined();
+
+        expect(mockBeforeNavigation).toHaveBeenCalledTimes(1);
+      });
     });
 
     it('sets transaction context from sentry-trace header', () => {
@@ -509,7 +542,6 @@ describe('BrowserTracing', () => {
         expect(baggage[0]).toEqual({
           release: '1.0.0',
           environment: 'production',
-          transaction: 'blank',
           public_key: 'pubKey',
           trace_id: expect.not.stringMatching('12312012123120121231201212312012'),
         });

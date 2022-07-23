@@ -15,39 +15,19 @@ import { snipLine } from "./string.ts";
  * @returns string Generated UUID4.
  */
 export function uuid4(): string {
-  if (!(crypto === void 0) && crypto.getRandomValues) {
-    // Use window.crypto API if available
-    const arr = new Uint16Array(8);
-    crypto.getRandomValues(arr);
-
-    // set 4 in byte 7
-    // eslint-disable-next-line no-bitwise
-    arr[3] = (arr[3] & 0xfff) | 0x4000;
-    // set 2 most significant bits of byte 9 to '10'
-    // eslint-disable-next-line no-bitwise
-    arr[4] = (arr[4] & 0x3fff) | 0x8000;
-
-    const pad = (num: number): string => {
-      let v = num.toString(16);
-      while (v.length < 4) {
-        v = `0${v}`;
-      }
-      return v;
-    };
-
-    return (
-      pad(arr[0]) + pad(arr[1]) + pad(arr[2]) + pad(arr[3]) + pad(arr[4]) +
-      pad(arr[5]) + pad(arr[6]) + pad(arr[7])
-    );
+  if (crypto && crypto.randomUUID) {
+    return crypto.randomUUID().replace(/-/g, '');
   }
+
+  const getRandomByte =
+    crypto && crypto.getRandomValues ? () => crypto.getRandomValues(new Uint8Array(1))[0] : () => Math.random() * 16;
+
   // http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript/2117523#2117523
-  return "xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+  // Concatenating the following numbers as strings results in '10000000100040008000100000000000'
+  return (([1e7] as unknown as string) + 1e3 + 4e3 + 8e3 + 1e11).replace(/[018]/g, c =>
     // eslint-disable-next-line no-bitwise
-    const r = (Math.random() * 16) | 0;
-    // eslint-disable-next-line no-bitwise
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+    ((c as unknown as number) ^ ((getRandomByte() & 15) >> ((c as unknown as number) / 4))).toString(16),
+  );
 }
 
 /**

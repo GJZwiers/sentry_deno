@@ -81,7 +81,8 @@ export type {
   TransactionContext,
   TransactionMetadata,
   TransactionSamplingMethod,
-} from "./transaction.ts";
+  TransactionSource,
+} from './transaction.ts';
 export type {
   DurationUnit,
   FractionUnit,
