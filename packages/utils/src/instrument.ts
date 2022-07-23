@@ -246,8 +246,7 @@ function shouldShortcircuitPreviousDebounce(
   return false;
 }
 
-
-let _oldOnErrorHandler: OnErrorEventHandler = null;
+let _oldOnErrorHandler: any = null;
 /** JSDoc */
 function instrumentError(): void {
   _oldOnErrorHandler = global.onerror;
