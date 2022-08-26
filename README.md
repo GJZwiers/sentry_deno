@@ -1,3 +1,6 @@
+> **Note** 
+> As of Deno v1.25 it is possible to import the Sentry SDK for Node directly into Deno using npm URLs, e.g. `import Sentry from 'npm:@sentry/node'. Therefore I have deprecated this module. You are still welcome to use it, but I will no longer update it.
+
 # Sentry_deno
 
 This is an unofficial port of the Sentry SDK (`@sentry/browser`) to Deno.
